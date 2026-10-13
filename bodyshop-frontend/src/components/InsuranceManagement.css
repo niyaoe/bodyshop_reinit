@@ -1,0 +1,259 @@
+
+.bs-insurance-management {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: #1f2937;
+}
+
+.bs-insurance-heading,
+.bs-insurance-section-title,
+.bs-insurance-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.bs-insurance-heading h3,
+.bs-insurance-section-title h4,
+.bs-insurance-list-heading h4 {
+  margin: 0;
+  color: #111827;
+}
+
+.bs-insurance-heading h3 {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.bs-insurance-heading p,
+.bs-insurance-section-title p,
+.bs-insurance-list-heading p {
+  margin: 5px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.bs-insurance-refresh {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.bs-insurance-refresh:hover {
+  background: #f3f4f6;
+}
+
+.bs-insurance-form-section,
+.bs-insurance-list-section {
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.bs-insurance-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.bs-insurance-section-title h4,
+.bs-insurance-list-heading h4 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.bs-insurance-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(120px, 0.7fr) auto;
+  align-items: end;
+  gap: 14px;
+}
+
+.bs-insurance-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bs-insurance-form input {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  outline: none;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-weight: 400;
+}
+
+.bs-insurance-form input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.bs-insurance-form-actions,
+.bs-insurance-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bs-insurance-save,
+.bs-insurance-cancel,
+.bs-insurance-edit,
+.bs-insurance-deactivate {
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bs-insurance-save {
+  border: 1px solid #4f46e5;
+  background: #4f46e5;
+  color: #fff;
+}
+
+.bs-insurance-save:hover {
+  background: #4338ca;
+}
+
+.bs-insurance-cancel {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+}
+
+.bs-insurance-edit {
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.bs-insurance-deactivate {
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.bs-insurance-save:disabled,
+.bs-insurance-cancel:disabled,
+.bs-insurance-refresh:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.bs-insurance-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.bs-insurance-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.bs-insurance-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.bs-insurance-table th {
+  padding: 11px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.bs-insurance-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.bs-insurance-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.bs-insurance-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.bs-insurance-table td strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+.bs-insurance-alert {
+  padding: 11px 13px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.bs-insurance-alert-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.bs-insurance-alert-success {
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.bs-insurance-empty {
+  padding: 24px 12px;
+  color: #6b7280;
+  text-align: center;
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .bs-insurance-form {
+    grid-template-columns: 1fr;
+  }
+
+  .bs-insurance-form-actions {
+    align-items: stretch;
+  }
+
+  .bs-insurance-form-actions button {
+    flex: 1;
+  }
+
+  .bs-insurance-form-section,
+  .bs-insurance-list-section {
+    padding: 14px;
+  }
+}

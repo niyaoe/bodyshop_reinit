@@ -1,0 +1,323 @@
+
+/* ================================
+   BRANCH MANAGEMENT — LIGHT THEME
+================================ */
+
+.bs-branch-management {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: #1f2937;
+  font-family: inherit;
+}
+
+/* Heading */
+
+.bs-branch-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.bs-branch-heading h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.bs-branch-heading p {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Refresh button */
+
+.bs-branch-refresh {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #4f46e5;
+  font-size: 22px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.bs-branch-refresh:hover {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+}
+
+.bs-branch-refresh:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+/* Form card */
+
+.bs-branch-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 3%);
+}
+
+.bs-branch-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bs-branch-form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.bs-branch-form input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 12%);
+}
+
+.bs-branch-form input::placeholder {
+  color: #9ca3af;
+}
+
+/* Form actions */
+
+.bs-branch-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.bs-branch-save,
+.bs-branch-cancel {
+  min-height: 39px;
+  padding: 0 15px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.bs-branch-save {
+  flex: 1;
+  border: 1px solid #4f46e5;
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.bs-branch-save:hover {
+  border-color: #4338ca;
+  background: #4338ca;
+}
+
+.bs-branch-save:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.bs-branch-cancel {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #4b5563;
+}
+
+.bs-branch-cancel:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Existing branches heading */
+
+.bs-branch-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bs-branch-list-heading h4 {
+  margin: 0;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bs-branch-list-heading > span {
+  display: grid;
+  place-items: center;
+  min-width: 27px;
+  height: 27px;
+  padding: 0 7px;
+  box-sizing: border-box;
+  border: 1px solid #e0e7ff;
+  border-radius: 8px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Branch list */
+
+.bs-branch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.bs-branch-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.bs-branch-item:hover {
+  border-color: #c7d2fe;
+  box-shadow: 0 3px 10px rgb(15 23 42 / 4%);
+}
+
+.bs-branch-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.bs-branch-info strong {
+  overflow: hidden;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bs-branch-info span {
+  width: fit-content;
+  padding: 3px 7px;
+  border: 1px solid #e5e7eb;
+  border-radius: 5px;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Edit and delete */
+
+.bs-branch-item-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.bs-branch-item-actions button {
+  padding: 7px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #4b5563;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.bs-branch-item-actions button:hover {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.bs-branch-item-actions .bs-branch-delete {
+  border-color: #fecaca;
+  background: #ffffff;
+  color: #dc2626;
+}
+
+.bs-branch-item-actions .bs-branch-delete:hover {
+  border-color: #fca5a5;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* Error message */
+
+.bs-branch-error {
+  padding: 11px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Loading and empty states */
+
+.bs-branch-message {
+  margin: 0;
+  padding: 24px 12px;
+  border: 1px dashed #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #6b7280;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Responsive layout */
+
+@media (max-width: 480px) {
+  .bs-branch-form {
+    padding: 14px;
+  }
+
+  .bs-branch-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .bs-branch-item-actions {
+    width: 100%;
+  }
+
+  .bs-branch-item-actions button {
+    flex: 1;
+  }
+}

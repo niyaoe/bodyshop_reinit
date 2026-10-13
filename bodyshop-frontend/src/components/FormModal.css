@@ -1,0 +1,500 @@
+/* ==========================================
+   BODY SHOP TRACKER — COMPACT FORM MODAL
+   CSS ONLY — EXISTING JSX
+========================================== */
+
+.bs-form-modal-overlay,
+.bs-form-modal-overlay * {
+  box-sizing: border-box;
+}
+
+.bs-form-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: rgba(20, 16, 42, 0.62);
+  backdrop-filter: blur(6px);
+}
+
+/* Compact modal */
+
+.bs-form-modal {
+  width: min(1280px, 96vw);
+  height: min(700px, calc(100dvh - 20px));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #29243f;
+  background: #fff;
+  border: 1px solid #e9e4f5;
+  border-radius: 16px;
+  box-shadow: 0 20px 65px rgba(25, 16, 58, 0.25);
+  animation: bsCompactEnter 160ms ease-out;
+}
+
+@keyframes bsCompactEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+
+.bs-form-modal-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 66px;
+  padding: 11px 18px;
+  background: #fbfaff;
+  border-bottom: 1px solid #ece8f5;
+}
+
+.bs-form-modal-title {
+  margin: 0;
+  color: #29243f;
+  font-size: 20px;
+  font-weight: 750;
+  line-height: 1.25;
+  letter-spacing: -0.4px;
+}
+
+.bs-form-modal-subtitle {
+  margin: 4px 0 0;
+  color: #858098;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.bs-form-modal-history-button {
+  flex-shrink: 0;
+  padding: 7px 11px;
+  color: #6040d8;
+  background: #f0ebff;
+  border: 1px solid #e1d7ff;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bs-form-modal-history-button:hover {
+  background: #e5dcff;
+}
+
+.bs-form-modal-close {
+  display: grid;
+  flex-shrink: 0;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  padding: 0;
+  color: #77718a;
+  background: #f1eff7;
+  border: 0;
+  border-radius: 8px;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bs-form-modal-close:hover {
+  color: #d73554;
+  background: #fff0f3;
+}
+
+/* Error */
+
+.bs-form-modal-error {
+  flex: 0 0 auto;
+  margin: 7px 18px 0;
+  padding: 7px 10px;
+  color: #b52d49;
+  background: #fff1f3;
+  border: 1px solid #ffd6de;
+  border-radius: 7px;
+  font-size: 11px;
+}
+
+/* Form */
+
+.bs-form-modal-form {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 18px;
+  overflow: hidden;
+}
+
+.bs-form-modal-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-content: center;
+  align-items: end;
+  gap: 12px 13px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Smaller fields */
+
+.bs-form-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bs-form-modal-field label {
+  display: block;
+  margin: 0;
+  overflow: hidden;
+  color: #59536f;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bs-form-modal-required {
+  color: #e23d60;
+}
+
+.bs-form-modal-field input,
+.bs-form-modal-field select,
+.bs-form-modal-field textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 33px;
+  margin: 0;
+  padding: 0 8px;
+  color: #302b47;
+  background: #fff;
+  border: 1px solid #e3dfed;
+  border-radius: 7px;
+  outline: none;
+  font-family: inherit;
+  font-size: 10px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.bs-form-modal-field input::placeholder,
+.bs-form-modal-field textarea::placeholder {
+  color: #aaa6ba;
+}
+
+.bs-form-modal-field input:hover,
+.bs-form-modal-field select:hover {
+  border-color: #c8bafa;
+}
+
+.bs-form-modal-field input:focus,
+.bs-form-modal-field select:focus,
+.bs-form-modal-field textarea:focus {
+  border-color: #7048f5;
+  box-shadow: 0 0 0 2px rgba(112, 72, 245, 0.1);
+}
+
+.bs-form-modal-field select {
+  cursor: pointer;
+}
+
+.bs-form-modal-field input[type="date"] {
+  padding-right: 3px;
+  color-scheme: light;
+}
+
+/* Footer */
+
+.bs-form-modal-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: 55px;
+  padding: 9px 18px;
+  background: #fff;
+  border-top: 1px solid #ece8f5;
+}
+
+.bs-form-modal-cancel,
+.bs-form-modal-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 100px;
+  min-height: 34px;
+  padding: 0 13px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.bs-form-modal-cancel {
+  color: #625d78;
+  background: #fff;
+  border: 1px solid #e3dfed;
+}
+
+.bs-form-modal-cancel:hover:not(:disabled) {
+  background: #f7f5fc;
+}
+
+.bs-form-modal-submit {
+  color: #fff;
+  background: linear-gradient(135deg, #8060ff, #623fe5);
+  border: 1px solid #6947ed;
+  box-shadow: 0 3px 9px rgba(112, 72, 245, 0.16);
+}
+
+.bs-form-modal-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7050f0, #5231d2);
+}
+
+.bs-form-modal-submit:disabled,
+.bs-form-modal-cancel:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Loading */
+
+.bs-form-modal-loading {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #827d96;
+  font-size: 11px;
+}
+
+.bs-loading-spinner {
+  width: 40px;
+  height: auto;
+  object-fit: contain;
+  animation: bs-loading-spin 2s linear infinite;
+  /* padding: 10px; */
+  border: #182230 1px solid;
+}
+@keyframes bs-loading-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* History */
+
+.bs-form-modal-history {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding: 14px 18px;
+  overflow: hidden;
+}
+
+.bs-form-modal-history h3 {
+  flex: 0 0 auto;
+  margin: 0;
+  color: #302a49;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.bs-form-modal-history-message {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  color: #827d96;
+  font-size: 11px;
+}
+
+.bs-form-modal-history-table-wrapper {
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid #e8e4f2;
+  border-radius: 9px;
+}
+
+.bs-form-modal-history-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 10px;
+  text-align: left;
+}
+
+.bs-form-modal-history-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 9px;
+  color: #5d5678;
+  background: #f3efff;
+  border-bottom: 1px solid #e3dcfa;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.bs-form-modal-history-table td {
+  padding: 9px;
+  color: #514c67;
+  border-bottom: 1px solid #f0edf6;
+}
+
+/* Smaller laptop */
+
+@media (max-width: 1100px) {
+  .bs-form-modal {
+    width: 97vw;
+    height: min(660px, calc(100dvh - 20px));
+  }
+
+  .bs-form-modal-fields-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .bs-form-modal-form {
+    padding: 10px 13px;
+  }
+}
+
+/* Tablet */
+
+@media (max-width: 800px) {
+  .bs-form-modal {
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+
+  .bs-form-modal-form {
+    justify-content: flex-start;
+    overflow-y: auto;
+  }
+
+  .bs-form-modal-fields-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-content: start;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 550px) {
+  .bs-form-modal-header {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .bs-form-modal-title {
+    font-size: 17px;
+  }
+
+  .bs-form-modal-subtitle {
+    font-size: 9px;
+  }
+
+  .bs-form-modal-fields-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px 9px;
+  }
+
+  .bs-form-modal-field input,
+  .bs-form-modal-field select {
+    height: 34px;
+    font-size: 10px;
+  }
+
+  .bs-form-modal-actions {
+    padding: 8px 12px;
+    gap: 7px;
+  }
+
+  .bs-form-modal-cancel,
+  .bs-form-modal-submit {
+    min-width: 0;
+    min-height: 34px;
+    padding: 0 10px;
+  }
+
+  .bs-form-modal-history {
+    padding: 10px;
+  }
+
+  .bs-form-modal-history-table {
+    min-width: 650px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-form-modal,
+  .bs-form-modal * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+
+
+/* highlite */
+
+
+/* Always highlight empty required fields */
+/* .bs-form-modal-field:has(input:required:invalid),
+.bs-form-modal-field:has(select:required:invalid) {
+  Field wrapper
+} */
+
+.bs-form-modal-field input:required:invalid,
+.bs-form-modal-field select:required:invalid {
+  border: 1px solid #e5485d !important;
+  background-color: #fff3f4 !important;
+  box-shadow: 0 0 0 2px rgba(229, 72, 93, 0.08);
+}
+
+/* Highlight disappears when the required field is valid */
+.bs-form-modal-field input:required:valid,
+.bs-form-modal-field select:required:valid {
+  border-color: #e3dfed;
+  background-color: #fff;
+  box-shadow: none;
+}
+
+/* Keep red styling when an empty field is focused */
+.bs-form-modal-field input:required:invalid:focus,
+.bs-form-modal-field select:required:invalid:focus {
+  border-color: #e5485d !important;
+  box-shadow: 0 0 0 3px rgba(229, 72, 93, 0.15);
+}

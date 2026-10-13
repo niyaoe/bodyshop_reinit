@@ -1,0 +1,322 @@
+
+.bs-advisor-management {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: #1f2937;
+  /* padding: 0px; */
+}
+
+.bs-advisor-heading,
+.bs-advisor-section-title,
+.bs-advisor-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.bs-advisor-heading h3,
+.bs-advisor-section-title h4,
+.bs-advisor-list-heading h4 {
+  margin: 0;
+  color: #111827;
+}
+
+.bs-advisor-heading h3 {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.bs-advisor-heading p,
+.bs-advisor-section-title p,
+.bs-advisor-list-heading p {
+  margin: 5px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.bs-advisor-refresh {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.bs-advisor-refresh:hover {
+  background: #f3f4f6;
+}
+
+.bs-advisor-form-section,
+.bs-advisor-list-section {
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.bs-advisor-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.bs-advisor-section-title h4,
+.bs-advisor-list-heading h4 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.bs-advisor-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(120px, 0.7fr) auto;
+  align-items: end;
+  gap: 14px;
+}
+
+.bs-advisor-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bs-advisor-form input {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  outline: none;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-weight: 400;
+}
+
+.bs-advisor-form input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.bs-advisor-form-actions,
+.bs-advisor-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bs-advisor-save,
+.bs-advisor-cancel,
+.bs-advisor-edit,
+.bs-advisor-deactivate {
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bs-advisor-save {
+  border: 1px solid #4f46e5;
+  background: #4f46e5;
+  color: #fff;
+}
+
+.bs-advisor-save:hover {
+  background: #4338ca;
+}
+
+.bs-advisor-cancel {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+}
+
+.bs-advisor-edit {
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.bs-advisor-deactivate {
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.bs-advisor-save:disabled,
+.bs-advisor-cancel:disabled,
+.bs-advisor-refresh:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.bs-advisor-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.bs-advisor-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.bs-advisor-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.bs-advisor-table th {
+  padding: 11px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.bs-advisor-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.bs-advisor-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.bs-advisor-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.bs-advisor-table td strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+.bs-advisor-alert {
+  padding: 11px 13px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.bs-advisor-alert-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.bs-advisor-alert-success {
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.bs-advisor-empty {
+  padding: 24px 12px;
+  color: #6b7280;
+  text-align: center;
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .bs-advisor-form {
+    grid-template-columns: 1fr;
+  }
+
+  .bs-advisor-form-actions {
+    align-items: stretch;
+  }
+
+  .bs-advisor-form-actions button {
+    flex: 1;
+  }
+
+  .bs-advisor-form-section,
+  .bs-advisor-list-section {
+    padding: 14px;
+  }
+}
+
+
+
+/* Branch dropdown — match existing inputs */
+.bs-advisor-form select {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  outline: none;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.bs-advisor-form select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+/* Adviser status */
+.bs-advisor-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.bs-advisor-status-active {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.bs-advisor-status-inactive {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Activate action */
+.bs-advisor-activate {
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #bbf7d0;
+  border-radius: 7px;
+  background: #f0fdf4;
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bs-advisor-activate:hover {
+  background: #dcfce7;
+}
