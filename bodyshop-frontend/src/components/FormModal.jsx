@@ -92,6 +92,12 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
 
    */
 
+  const backToRecord = () => {
+    setHistoryOpen(false)
+    onClose()
+
+  }
+
   const fetchVehicleModels = async () => {
     try {
       const response = await api.get("/vehicle-models");
@@ -410,7 +416,8 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
             <button
               type="button"
               className="bs-form-modal-close"
-              onClick={onClose}
+              onClick={backToRecord}
+              
             >
               ×
             </button>

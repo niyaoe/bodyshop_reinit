@@ -95,25 +95,32 @@
 }
 
 .bs-form-modal-close {
-  display: grid;
-  flex-shrink: 0;
-  width: 31px;
-  height: 31px;
-  place-items: center;
+   display: grid;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
   padding: 0;
-  color: #77718a;
-  background: #f1eff7;
-  border: 0;
-  border-radius: 8px;
-  font-size: 22px;
+  place-items: center;
+  color: #77738b;
+  background: #f5f4fa;
+  border: 1px solid #eeecf5;
+  border-radius: 9px;
+  font-size: 23px;
   line-height: 1;
   cursor: pointer;
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
 }
 
 .bs-form-modal-close:hover {
-  color: #d73554;
-  background: #fff0f3;
+   color: #fff;
+  background: #7964f5;
+  transform: rotate(90deg);
 }
+
+
 
 /* Error */
 

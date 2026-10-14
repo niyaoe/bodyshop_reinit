@@ -1,249 +1,309 @@
 
+/* =========================================
+   BODY SHOP TRACKER - STATUS MANAGEMENT
+   Modern • Compact • Responsive
+========================================= */
+
 .bs-status-management {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  --bs-status-accent: #7964f5;
+  --bs-status-accent-hover: #6650e8;
+  --bs-status-accent-soft: #f1eeff;
+  --bs-status-text: #28263a;
+  --bs-status-muted: #858398;
+  --bs-status-border: #e9e7f1;
+  --bs-status-surface: #ffffff;
+  --bs-status-background: #faf9fd;
+  --bs-status-danger: #d94b62;
+  --bs-status-danger-soft: #fff0f2;
+  --bs-status-success: #16845b;
+  --bs-status-success-soft: #eaf8f1;
+
+  width: 100%;
   min-width: 0;
-  color: #1f2937;
+  color: var(--bs-status-text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
-.bs-status-heading,
+.bs-status-management *,
+.bs-status-management *::before,
+.bs-status-management *::after {
+  box-sizing: border-box;
+}
+
+.bs-status-management button,
+.bs-status-management input,
+.bs-status-management select {
+  font: inherit;
+}
+
+.bs-status-management button {
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.bs-status-management button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ---------- Heading ---------- */
+
+.bs-status-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.bs-status-heading h3 {
+  margin: 0;
+  color: var(--bs-status-text);
+  font-size: clamp(17px, 2vw, 20px);
+  font-weight: 750;
+  letter-spacing: -0.4px;
+}
+
+.bs-status-heading p {
+  margin: 4px 0 0;
+  color: var(--bs-status-muted);
+  font-size: 12px;
+}
+
+.bs-status-refresh {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--bs-status-border);
+  border-radius: 9px;
+  background: var(--bs-status-surface);
+  color: var(--bs-status-accent);
+  font-size: 21px;
+  line-height: 1;
+}
+
+.bs-status-refresh:hover:not(:disabled) {
+  border-color: var(--bs-status-accent);
+  background: var(--bs-status-accent-soft);
+}
+
+/* ---------- Alerts ---------- */
+
+.bs-status-alert {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.bs-status-alert-error {
+  border-color: #f5cbd2;
+  background: var(--bs-status-danger-soft);
+  color: #b72e47;
+}
+
+.bs-status-alert-success {
+  border-color: #c7ead8;
+  background: var(--bs-status-success-soft);
+  color: var(--bs-status-success);
+}
+
+/* ---------- Section cards ---------- */
+
+.bs-status-form-section,
+.bs-status-list-section {
+  min-width: 0;
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--bs-status-border);
+  border-radius: 12px;
+  background: var(--bs-status-surface);
+  box-shadow: 0 3px 14px rgb(40 30 80 / 3%);
+}
+
 .bs-status-section-heading,
 .bs-status-list-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-}
-
-.bs-status-heading h3 {
-  margin: 0;
-  color: #111827;
-  font-size: 19px;
-  font-weight: 700;
-}
-
-.bs-status-heading p,
-.bs-status-section-heading p,
-.bs-status-list-heading p {
-  margin: 5px 0 0;
-  color: #6b7280;
-  font-size: 12px;
-}
-
-.bs-status-refresh {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #e5e7eb;
-  border-radius: 9px;
-  background: #fff;
-  color: #4f46e5;
-  font-size: 22px;
-  cursor: pointer;
-}
-
-.bs-status-refresh:hover {
-  background: #eef2ff;
-}
-
-.bs-status-refresh:disabled {
-  opacity: 0.5;
-  cursor: wait;
-}
-
-.bs-status-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.bs-status-stat {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 14px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  background: #fff;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-}
-
-.bs-status-stat:hover,
-.bs-status-stat.is-selected {
-  border-color: #a5b4fc;
-  background: #eef2ff;
-}
-
-.bs-status-stat span {
-  color: #6b7280;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.bs-status-stat strong {
-  color: #4338ca;
-  font-size: 22px;
-}
-
-.bs-status-alert {
-  padding: 11px 13px;
-  border: 1px solid;
-  border-radius: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.bs-status-alert-error {
-  border-color: #fecaca;
-  background: #fef2f2;
-  color: #b91c1c;
-}
-
-.bs-status-alert-success {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
-  color: #166534;
-}
-
-.bs-status-form-section,
-.bs-status-list-section {
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-  min-width: 0;
+  margin-bottom: 14px;
 }
 
 .bs-status-section-heading h4,
 .bs-status-list-heading h4 {
   margin: 0;
-  color: #111827;
+  color: var(--bs-status-text);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 750;
+  letter-spacing: -0.2px;
 }
+
+.bs-status-section-heading p,
+.bs-status-list-heading p {
+  margin: 3px 0 0;
+  color: var(--bs-status-muted);
+  font-size: 11.5px;
+}
+
+/* ---------- Form ---------- */
 
 .bs-status-form {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(90px, 0.6fr);
-  gap: 13px;
-  padding: 17px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgb(15 23 42 / 3%);
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(90px, 0.55fr) auto;
+  align-items: end;
+  gap: 12px;
 }
 
-.bs-status-form label {
+.bs-status-form > label {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
   min-width: 0;
-  color: #374151;
-  font-size: 12px;
-  font-weight: 600;
+  color: #504d66;
+  font-size: 11.5px;
+  font-weight: 650;
 }
 
 .bs-status-form input,
-.bs-status-form select,
-.bs-status-list-heading select {
+.bs-status-form select {
+  display: block;
   width: 100%;
   min-width: 0;
-  box-sizing: border-box;
-  padding: 10px 11px;
-  border: 1px solid #d1d5db;
+  height: 37px;
+  padding: 0 10px;
+  border: 1px solid #e3e0ee;
   border-radius: 8px;
   outline: none;
   background: #fff;
-  color: #111827;
-  font: inherit;
+  color: var(--bs-status-text);
   font-size: 12px;
+  font-weight: 450;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.bs-status-form input::placeholder {
+  color: #aaa7ba;
 }
 
 .bs-status-form input:focus,
-.bs-status-form select:focus,
-.bs-status-list-heading select:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgb(99 102 241 / 10%);
+.bs-status-form select:focus {
+  border-color: var(--bs-status-accent);
+  box-shadow: 0 0 0 3px rgb(121 100 245 / 11%);
 }
 
-.bs-status-form-actions {
-  display: flex;
-  gap: 8px;
-  grid-column: 1 / -1;
-}
-
-.bs-status-save,
-.bs-status-cancel {
-  min-height: 37px;
-  padding: 0 14px;
-  border: 1px solid;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
+.bs-status-form select {
   cursor: pointer;
 }
 
+/* ---------- Form buttons ---------- */
+
+.bs-status-form-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.bs-status-save,
+.bs-status-cancel,
+.bs-status-edit,
+.bs-status-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 7px 11px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .bs-status-save {
-  border-color: #4f46e5;
-  background: #4f46e5;
+  background: var(--bs-status-accent);
   color: #fff;
 }
 
-.bs-status-save:hover {
-  background: #4338ca;
-}
-
-.bs-status-save:disabled,
-.bs-status-cancel:disabled {
-  opacity: 0.6;
-  cursor: wait;
+.bs-status-save:hover:not(:disabled) {
+  background: var(--bs-status-accent-hover);
+  box-shadow: 0 3px 8px rgb(121 100 245 / 18%);
 }
 
 .bs-status-cancel {
-  border-color: #d1d5db;
+  border-color: var(--bs-status-border);
   background: #fff;
-  color: #4b5563;
+  color: #625f76;
 }
 
-.bs-status-cancel:hover {
-  background: #f9fafb;
+.bs-status-cancel:hover:not(:disabled) {
+  border-color: #d2cee3;
+  background: #f7f6fb;
+}
+
+/* ---------- Existing statuses ---------- */
+
+.bs-status-list-section {
+  margin-bottom: 0;
+}
+
+.bs-status-list-heading {
+  margin-bottom: 12px;
 }
 
 .bs-status-table-wrap {
   width: 100%;
   overflow-x: auto;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  background: #fff;
+  border: 1px solid var(--bs-status-border);
+  border-radius: 9px;
+  scrollbar-width: thin;
+  scrollbar-color: #d3ccef transparent;
 }
 
 .bs-status-table {
   width: 100%;
-  min-width: 550px;
+  min-width: 480px;
   border-collapse: separate;
   border-spacing: 0;
+  background: #fff;
   text-align: left;
 }
 
-.bs-status-table th {
-  padding: 11px 13px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
-  color: #6b7280;
+.bs-status-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--bs-status-border);
+  background: #f8f7fc;
+  color: #77748b;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 750;
   letter-spacing: 0.4px;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
-.bs-status-table td {
-  padding: 10px 13px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #374151;
-  font-size: 12px;
+.bs-status-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0eef6;
+  color: #555168;
+  font-size: 11.5px;
   vertical-align: middle;
 }
 
@@ -252,102 +312,174 @@
 }
 
 .bs-status-table tbody tr:hover {
-  background: #fafaff;
+  background: #fcfbff;
 }
 
 .bs-status-name {
-  color: #111827;
-  font-weight: 600;
+  color: var(--bs-status-text);
+  font-size: 11.5px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
+
+/* ---------- Dashboard section badges ---------- */
 
 .bs-status-section-badge {
   display: inline-flex;
-  padding: 4px 8px;
-  border: 1px solid;
-  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: 20px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 750;
+  white-space: nowrap;
 }
 
 .bs-status-section-open {
-  border-color: #bfdbfe;
-  background: #eff6ff;
-  color: #1d4ed8;
+  border-color: #dcd5ff;
+  background: #f1eeff;
+  color: #6650c8;
 }
 
 .bs-status-section-billed {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
-  color: #15803d;
+  border-color: #ccebdc;
+  background: #eaf8f1;
+  color: #16845b;
 }
 
 .bs-status-section-legalLoss {
-  border-color: #fecaca;
-  background: #fef2f2;
-  color: #b91c1c;
+  border-color: #f3d5bc;
+  background: #fff3e8;
+  color: #b76525;
 }
+
+/* ---------- Table actions ---------- */
 
 .bs-status-actions {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
+  min-width: 145px;
 }
 
-.bs-status-actions button {
-  padding: 6px 9px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: #fff;
-  color: #4b5563;
-  font-size: 10px;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
+.bs-status-edit {
+  border-color: #ded8ff;
+  background: #f3f0ff;
+  color: #6955d2;
 }
 
-.bs-status-actions .bs-status-edit:hover {
-  border-color: #c7d2fe;
-  background: #eef2ff;
-  color: #4338ca;
+.bs-status-edit:hover {
+  border-color: #bdb0ff;
+  background: #e9e4ff;
 }
 
-.bs-status-actions .bs-status-delete {
-  border-color: #fecaca;
-  color: #dc2626;
+.bs-status-delete {
+  border-color: #f4d3d9;
+  background: var(--bs-status-danger-soft);
+  color: var(--bs-status-danger);
 }
 
-.bs-status-actions .bs-status-delete:hover {
-  background: #fef2f2;
+.bs-status-delete:hover {
+  border-color: #e9aab5;
+  background: #ffe4e8;
 }
+
+/* ---------- Empty/loading state ---------- */
 
 .bs-status-empty {
   margin: 0;
   padding: 26px 14px;
-  color: #6b7280;
+  color: var(--bs-status-muted);
   font-size: 12px;
   text-align: center;
 }
 
-@media (max-width: 700px) {
+/* ---------- Keyboard accessibility ---------- */
+
+.bs-status-management button:focus-visible,
+.bs-status-management input:focus-visible,
+.bs-status-management select:focus-visible {
+  outline: 2px solid rgb(121 100 245 / 65%);
+  outline-offset: 2px;
+}
+
+/* ---------- Tablet ---------- */
+
+@media (max-width: 1000px) {
   .bs-status-form {
-    grid-template-columns: 1fr;
-    padding: 13px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bs-status-form-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 560px) {
+  .bs-status-heading {
+    margin-bottom: 12px;
+  }
+
+  .bs-status-heading h3 {
+    font-size: 17px;
+  }
+
+  .bs-status-heading p {
+    font-size: 11px;
+  }
+
+  .bs-status-form-section,
+  .bs-status-list-section {
+    padding: 11px;
+    border-radius: 10px;
+  }
+
+  .bs-status-section-heading,
+  .bs-status-list-heading {
+    align-items: flex-start;
+  }
+
+  .bs-status-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 11px;
   }
 
   .bs-status-form-actions {
     grid-column: auto;
+    align-items: center;
   }
 
-  .bs-status-stats {
-    gap: 6px;
+  .bs-status-save,
+  .bs-status-cancel {
+    min-height: 35px;
   }
 
-  .bs-status-stat {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: 10px;
+  .bs-status-table {
+    min-width: 450px;
   }
 
-  .bs-status-stat strong {
-    font-size: 19px;
+  .bs-status-table thead th,
+  .bs-status-table tbody td {
+    padding: 9px;
+  }
+
+  .bs-status-actions {
+    gap: 5px;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-status-management *,
+  .bs-status-management *::before,
+  .bs-status-management *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

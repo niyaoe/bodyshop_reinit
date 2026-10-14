@@ -1,259 +1,445 @@
 
+/* =========================================
+   BODY SHOP TRACKER - INSURANCE MANAGEMENT
+   Modern • Compact • Responsive
+========================================= */
+
 .bs-insurance-management {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  color: #1f2937;
+  --bs-insurance-accent: #7964f5;
+  --bs-insurance-accent-hover: #6650e8;
+  --bs-insurance-accent-soft: #f1eeff;
+  --bs-insurance-text: #28263a;
+  --bs-insurance-muted: #858398;
+  --bs-insurance-border: #e9e7f1;
+  --bs-insurance-surface: #ffffff;
+  --bs-insurance-background: #faf9fd;
+  --bs-insurance-danger: #d94b62;
+  --bs-insurance-danger-soft: #fff0f2;
+  --bs-insurance-success: #16845b;
+  --bs-insurance-success-soft: #eaf8f1;
+
+  width: 100%;
+  min-width: 0;
+  color: var(--bs-insurance-text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
-.bs-insurance-heading,
+.bs-insurance-management *,
+.bs-insurance-management *::before,
+.bs-insurance-management *::after {
+  box-sizing: border-box;
+}
+
+.bs-insurance-management button,
+.bs-insurance-management input {
+  font: inherit;
+}
+
+.bs-insurance-management button {
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.bs-insurance-management button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ---------- Page heading ---------- */
+
+.bs-insurance-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.bs-insurance-heading h3 {
+  margin: 0;
+  color: var(--bs-insurance-text);
+  font-size: clamp(17px, 2vw, 20px);
+  font-weight: 750;
+  letter-spacing: -0.4px;
+}
+
+.bs-insurance-heading p {
+  margin: 4px 0 0;
+  color: var(--bs-insurance-muted);
+  font-size: 12px;
+}
+
+.bs-insurance-refresh {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--bs-insurance-border);
+  border-radius: 9px;
+  background: var(--bs-insurance-surface);
+  color: var(--bs-insurance-accent);
+  font-size: 21px;
+  line-height: 1;
+}
+
+.bs-insurance-refresh:hover:not(:disabled) {
+  border-color: var(--bs-insurance-accent);
+  background: var(--bs-insurance-accent-soft);
+}
+
+/* ---------- Alerts ---------- */
+
+.bs-insurance-alert {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.bs-insurance-alert-error {
+  border-color: #f5cbd2;
+  background: var(--bs-insurance-danger-soft);
+  color: #b72e47;
+}
+
+.bs-insurance-alert-success {
+  border-color: #c7ead8;
+  background: var(--bs-insurance-success-soft);
+  color: var(--bs-insurance-success);
+}
+
+/* ---------- Section cards ---------- */
+
+.bs-insurance-form-section,
+.bs-insurance-list-section {
+  min-width: 0;
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--bs-insurance-border);
+  border-radius: 12px;
+  background: var(--bs-insurance-surface);
+  box-shadow: 0 3px 14px rgb(40 30 80 / 3%);
+}
+
 .bs-insurance-section-title,
 .bs-insurance-list-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
-.bs-insurance-heading h3,
 .bs-insurance-section-title h4,
 .bs-insurance-list-heading h4 {
   margin: 0;
-  color: #111827;
+  color: var(--bs-insurance-text);
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -0.2px;
 }
 
-.bs-insurance-heading h3 {
-  font-size: 19px;
-  font-weight: 700;
-}
-
-.bs-insurance-heading p,
 .bs-insurance-section-title p,
 .bs-insurance-list-heading p {
-  margin: 5px 0 0;
-  color: #6b7280;
-  font-size: 13px;
+  margin: 3px 0 0;
+  color: var(--bs-insurance-muted);
+  font-size: 11.5px;
 }
 
-.bs-insurance-refresh {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #fff;
-  color: #374151;
-  font-size: 22px;
-  cursor: pointer;
-}
-
-.bs-insurance-refresh:hover {
-  background: #f3f4f6;
-}
-
-.bs-insurance-form-section,
-.bs-insurance-list-section {
-  padding: 18px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.bs-insurance-form-section {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.bs-insurance-section-title h4,
-.bs-insurance-list-heading h4 {
-  font-size: 15px;
-  font-weight: 700;
-}
+/* ---------- Form ---------- */
 
 .bs-insurance-form {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(120px, 0.7fr) auto;
+  grid-template-columns: minmax(0, 1.5fr) minmax(100px, 0.55fr) auto;
   align-items: end;
-  gap: 14px;
+  gap: 12px;
 }
 
-.bs-insurance-form label {
+.bs-insurance-form > label {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  color: #374151;
-  font-size: 13px;
-  font-weight: 600;
+  gap: 6px;
+  min-width: 0;
+  color: #504d66;
+  font-size: 11.5px;
+  font-weight: 650;
 }
 
 .bs-insurance-form input {
+  display: block;
   width: 100%;
   min-width: 0;
-  height: 40px;
-  padding: 0 11px;
-  border: 1px solid #d1d5db;
-  border-radius: 7px;
+  height: 37px;
+  padding: 0 10px;
+  border: 1px solid #e3e0ee;
+  border-radius: 8px;
   outline: none;
   background: #fff;
-  color: #111827;
-  font: inherit;
-  font-weight: 400;
+  color: var(--bs-insurance-text);
+  font-size: 12px;
+  font-weight: 450;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.bs-insurance-form input::placeholder {
+  color: #aaa7ba;
 }
 
 .bs-insurance-form input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  border-color: var(--bs-insurance-accent);
+  box-shadow: 0 0 0 3px rgb(121 100 245 / 11%);
 }
 
-.bs-insurance-form-actions,
-.bs-insurance-actions {
+/* ---------- Form buttons ---------- */
+
+.bs-insurance-form-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 7px;
 }
 
 .bs-insurance-save,
 .bs-insurance-cancel,
 .bs-insurance-edit,
 .bs-insurance-deactivate {
-  min-height: 36px;
-  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 7px 11px;
+  border: 1px solid transparent;
   border-radius: 7px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .bs-insurance-save {
-  border: 1px solid #4f46e5;
-  background: #4f46e5;
+  background: var(--bs-insurance-accent);
   color: #fff;
 }
 
-.bs-insurance-save:hover {
-  background: #4338ca;
+.bs-insurance-save:hover:not(:disabled) {
+  background: var(--bs-insurance-accent-hover);
+  box-shadow: 0 3px 8px rgb(121 100 245 / 18%);
 }
 
 .bs-insurance-cancel {
-  border: 1px solid #d1d5db;
+  border-color: var(--bs-insurance-border);
   background: #fff;
-  color: #374151;
+  color: #625f76;
 }
 
-.bs-insurance-edit {
-  border: 1px solid #c7d2fe;
-  background: #eef2ff;
-  color: #4338ca;
+.bs-insurance-cancel:hover:not(:disabled) {
+  border-color: #d2cee3;
+  background: #f7f6fb;
 }
 
-.bs-insurance-deactivate {
-  border: 1px solid #fecaca;
-  background: #fff1f2;
-  color: #be123c;
-}
-
-.bs-insurance-save:disabled,
-.bs-insurance-cancel:disabled,
-.bs-insurance-refresh:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
+/* ---------- Insurance company list ---------- */
 
 .bs-insurance-list-section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 0;
+  margin-bottom: 0;
+}
+
+.bs-insurance-list-heading {
+  margin-bottom: 12px;
 }
 
 .bs-insurance-table-wrap {
   width: 100%;
   overflow-x: auto;
+  border: 1px solid var(--bs-insurance-border);
+  border-radius: 9px;
+  scrollbar-width: thin;
+  scrollbar-color: #d3ccef transparent;
 }
 
 .bs-insurance-table {
   width: 100%;
-  border-collapse: collapse;
+  min-width: 440px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
   text-align: left;
-  font-size: 13px;
 }
 
-.bs-insurance-table th {
-  padding: 11px 12px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
-  color: #6b7280;
-  font-size: 11px;
-  font-weight: 700;
+.bs-insurance-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--bs-insurance-border);
+  background: #f8f7fc;
+  color: #77748b;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
-.bs-insurance-table td {
-  padding: 12px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #374151;
+.bs-insurance-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0eef6;
+  color: #555168;
+  font-size: 11.5px;
   vertical-align: middle;
-}
-
-.bs-insurance-table tbody tr:hover {
-  background: #f9fafb;
 }
 
 .bs-insurance-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.bs-insurance-table td strong {
-  color: #111827;
-  font-weight: 600;
+.bs-insurance-table tbody tr:hover {
+  background: #fcfbff;
 }
 
-.bs-insurance-alert {
-  padding: 11px 13px;
-  border-radius: 8px;
-  font-size: 13px;
+.bs-insurance-table tbody td strong {
+  color: var(--bs-insurance-text);
+  font-size: 11.5px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
-.bs-insurance-alert-error {
-  border: 1px solid #fecaca;
-  background: #fef2f2;
-  color: #b91c1c;
+/* ---------- Row actions ---------- */
+
+.bs-insurance-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 145px;
 }
 
-.bs-insurance-alert-success {
-  border: 1px solid #bbf7d0;
-  background: #f0fdf4;
-  color: #166534;
+.bs-insurance-edit {
+  border-color: #ded8ff;
+  background: #f3f0ff;
+  color: #6955d2;
 }
+
+.bs-insurance-edit:hover {
+  border-color: #bdb0ff;
+  background: #e9e4ff;
+}
+
+.bs-insurance-deactivate {
+  border-color: #f4d3d9;
+  background: var(--bs-insurance-danger-soft);
+  color: var(--bs-insurance-danger);
+}
+
+.bs-insurance-deactivate:hover {
+  border-color: #e9aab5;
+  background: #ffe4e8;
+}
+
+/* ---------- Loading and empty states ---------- */
 
 .bs-insurance-empty {
-  padding: 24px 12px;
-  color: #6b7280;
+  margin: 0;
+  padding: 26px 14px;
+  color: var(--bs-insurance-muted);
+  font-size: 12px;
   text-align: center;
-  font-size: 13px;
 }
 
-@media (max-width: 760px) {
+/* ---------- Keyboard focus ---------- */
+
+.bs-insurance-management button:focus-visible,
+.bs-insurance-management input:focus-visible {
+  outline: 2px solid rgb(121 100 245 / 65%);
+  outline-offset: 2px;
+}
+
+/* ---------- Tablet ---------- */
+
+@media (max-width: 850px) {
   .bs-insurance-form {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(100px, 0.45fr);
   }
 
   .bs-insurance-form-actions {
-    align-items: stretch;
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 560px) {
+  .bs-insurance-heading {
+    margin-bottom: 12px;
   }
 
-  .bs-insurance-form-actions button {
-    flex: 1;
+  .bs-insurance-heading h3 {
+    font-size: 17px;
+  }
+
+  .bs-insurance-heading p {
+    font-size: 11px;
   }
 
   .bs-insurance-form-section,
   .bs-insurance-list-section {
-    padding: 14px;
+    padding: 11px;
+    border-radius: 10px;
+  }
+
+  .bs-insurance-section-title,
+  .bs-insurance-list-heading {
+    align-items: flex-start;
+  }
+
+  .bs-insurance-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 11px;
+  }
+
+  .bs-insurance-form-actions {
+    grid-column: auto;
+    align-items: center;
+  }
+
+  .bs-insurance-save,
+  .bs-insurance-cancel {
+    min-height: 35px;
+  }
+
+  .bs-insurance-table {
+    min-width: 420px;
+  }
+
+  .bs-insurance-table thead th,
+  .bs-insurance-table tbody td {
+    padding: 9px;
+  }
+
+  .bs-insurance-actions {
+    gap: 5px;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-insurance-management *,
+  .bs-insurance-management *::before,
+  .bs-insurance-management *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

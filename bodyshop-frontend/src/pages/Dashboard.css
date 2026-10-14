@@ -285,7 +285,7 @@
   flex-wrap: wrap;
 }
 .bs-dashboard-utility-button,
-.bs-dashboard-create-button {
+.bs-dashboard-create-button,.bs-dashboard-admin-button {
   min-height: 34px;
   display: inline-flex;
   align-items: center;
@@ -307,7 +307,7 @@
   background: #fff;
   color: #596579;
 }
-.bs-dashboard-utility-button:hover,
+.bs-dashboard-utility-button:hover,.bs-dashboard-admin-button,
 .bs-dashboard-utility-button.is-active {
   background: #f0f4ff;
   border-color: #d6e0ff;
@@ -331,7 +331,7 @@
   border-color: #2446b8;
 }
 .bs-dashboard-create-button:active,
-.bs-dashboard-utility-button:active {
+.bs-dashboard-utility-button:active,.bs-dashboard-admin-button:active {
   transform: translateY(1px);
 }
 
