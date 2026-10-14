@@ -1,36 +1,85 @@
+
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const Branch = require("../models/Branch");
 
+// Helper: validate branch IDs and return active branch documents
+const validateBranches = async (branchIds) => {
+  if (!Array.isArray(branchIds) || branchIds.length === 0) {
+    return {
+      error: "At least one branch is required",
+    };
+  }
+
+  // Remove duplicate IDs
+  const uniqueIds = [...new Set(branchIds.map(String))];
+
+  // Validate ObjectId format
+  const mongoose = require("mongoose");
+
+  const invalidId = uniqueIds.some(
+    (id) => !mongoose.Types.ObjectId.isValid(id)
+  );
+
+  if (invalidId) {
+    return {
+      error: "Invalid branch ID",
+    };
+  }
+
+  const branches = await Branch.find({
+    _id: { $in: uniqueIds },
+  });
+
+  if (branches.length !== uniqueIds.length) {
+    return {
+      error: "One or more branches were not found",
+    };
+  }
+
+  const inactiveBranch = branches.find(
+    (branch) => !branch.isActive
+  );
+
+  if (inactiveBranch) {
+    return {
+      error: `Branch "${inactiveBranch.name}" is inactive`,
+    };
+  }
+
+  return { branches };
+};
+
 // Create user
 const createUser = async (req, res) => {
   try {
-    const { name, email, password, branch } = req.body;
+    const { name, email, password, branch, branches } = req.body;
 
-    if (!name || !email || !password || !branch) {
+    if (!name || !email || !password) {
       return res.status(400).json({
-        message: "Name, email, password and branch are required",
+        message: "Name, email and password are required",
       });
     }
 
-    // Check branch
-    const existingBranch = await Branch.findById(branch);
+    // Support both the new array and the old single-branch payload
+    const branchIds = Array.isArray(branches)
+      ? branches
+      : branch
+        ? [branch]
+        : [];
 
-    if (!existingBranch) {
-      return res.status(404).json({
-        message: "Branch not found",
-      });
-    }
+    const validation = await validateBranches(branchIds);
 
-    if (!existingBranch.isActive) {
+    if (validation.error) {
       return res.status(400).json({
-        message: "Selected branch is inactive",
+        message: validation.error,
       });
     }
 
-    // Check existing email
+    const normalizedEmail = email.toLowerCase().trim();
+
     const existingUser = await User.findOne({
-      email: email.toLowerCase(),
+      email: normalizedEmail,
     });
 
     if (existingUser) {
@@ -39,30 +88,33 @@ const createUser = async (req, res) => {
       });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      name,
-      email: email.toLowerCase(),
+      name: name.trim(),
+      email: normalizedEmail,
       password: hashedPassword,
       role: "user",
-      branch,
+      branches: validation.branches.map((item) => item._id),
+
+      // Keep legacy field synchronized with the first assigned branch
+      branch: validation.branches[0]._id,
       isActive: true,
     });
 
     const createdUser = await User.findById(user._id)
       .select("-password")
-      .populate("branch", "name code");
+      .populate("branch", "name code")
+      .populate("branches", "name code");
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "User created successfully",
       user: createdUser,
     });
   } catch (error) {
     console.error("Create user error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server error",
     });
   }
@@ -74,16 +126,28 @@ const getUsers = async (req, res) => {
     const users = await User.find()
       .select("-password")
       .populate("branch", "name code")
+      .populate("branches", "name code")
       .sort({ createdAt: -1 });
 
-    res.status(200).json({
-      count: users.length,
-      users,
+    // Return a consistent branches array for older users too
+    const normalizedUsers = users.map((user) => {
+      const item = user.toObject();
+
+      if (!item.branches || item.branches.length === 0) {
+        item.branches = item.branch ? [item.branch] : [];
+      }
+
+      return item;
+    });
+
+    return res.status(200).json({
+      count: normalizedUsers.length,
+      users: normalizedUsers,
     });
   } catch (error) {
     console.error("Get users error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server error",
     });
   }
@@ -94,7 +158,8 @@ const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
       .select("-password")
-      .populate("branch", "name code");
+      .populate("branch", "name code")
+      .populate("branches", "name code");
 
     if (!user) {
       return res.status(404).json({
@@ -102,13 +167,19 @@ const getUserById = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      user,
+    const userData = user.toObject();
+
+    if (!userData.branches || userData.branches.length === 0) {
+      userData.branches = userData.branch ? [userData.branch] : [];
+    }
+
+    return res.status(200).json({
+      user: userData,
     });
   } catch (error) {
     console.error("Get user error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server error",
     });
   }
@@ -117,7 +188,7 @@ const getUserById = async (req, res) => {
 // Update user
 const updateUser = async (req, res) => {
   try {
-    const { name, email, password, branch, isActive } = req.body;
+    const { name, email, password, branch, branches, isActive } = req.body;
 
     const user = await User.findById(req.params.id);
 
@@ -127,29 +198,29 @@ const updateUser = async (req, res) => {
       });
     }
 
-    // Check branch if provided
-    if (branch) {
-      const existingBranch = await Branch.findById(branch);
+    // Update branch assignments only when the request includes them
+    if (Array.isArray(branches) || branch) {
+      const branchIds = Array.isArray(branches)
+        ? branches
+        : [branch];
 
-      if (!existingBranch) {
-        return res.status(404).json({
-          message: "Branch not found",
-        });
-      }
+      const validation = await validateBranches(branchIds);
 
-      if (!existingBranch.isActive) {
+      if (validation.error) {
         return res.status(400).json({
-          message: "Selected branch is inactive",
+          message: validation.error,
         });
       }
 
-      user.branch = branch;
+      user.branches = validation.branches.map((item) => item._id);
+      user.branch = validation.branches[0]._id;
     }
 
-    // Check email if changed
-    if (email && email.toLowerCase() !== user.email) {
+    if (email && email.toLowerCase().trim() !== user.email) {
+      const normalizedEmail = email.toLowerCase().trim();
+
       const emailExists = await User.findOne({
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         _id: { $ne: user._id },
       });
 
@@ -159,11 +230,11 @@ const updateUser = async (req, res) => {
         });
       }
 
-      user.email = email.toLowerCase();
+      user.email = normalizedEmail;
     }
 
     if (name) {
-      user.name = name;
+      user.name = name.trim();
     }
 
     if (password) {
@@ -178,16 +249,17 @@ const updateUser = async (req, res) => {
 
     const updatedUser = await User.findById(user._id)
       .select("-password")
-      .populate("branch", "name code");
+      .populate("branch", "name code")
+      .populate("branches", "name code");
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "User updated successfully",
       user: updatedUser,
     });
   } catch (error) {
     console.error("Update user error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server error",
     });
   }
@@ -204,19 +276,16 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    // Don't permanently delete the user.
-    // Deactivate instead.
     user.isActive = false;
-
     await user.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "User deactivated successfully",
     });
   } catch (error) {
     console.error("Delete user error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Server error",
     });
   }

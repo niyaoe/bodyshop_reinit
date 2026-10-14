@@ -17,7 +17,8 @@ const protect = async (req, res, next) => {
 
     const user = await User.findById(decoded.id)
       .select("-password")
-      .populate("branch", "name code");
+      .populate("branch", "name code")
+      .populate("branches", "name code");
 
     if (!user) {
       return res.status(401).json({

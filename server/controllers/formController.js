@@ -4,6 +4,22 @@ const Status = require("../models/Status");
 const mongoose = require("mongoose");
 const RecordHistory = require("../models/RecordHistory");
 
+// Get all assigned branch IDs, including legacy single-branch users
+const getAssignedBranchIds = (user) => {
+  const assignedBranches = [
+    ...(user.branches || []),
+    ...(user.branch ? [user.branch] : []),
+  ];
+
+  return [
+    ...new Set(
+      assignedBranches
+        .map((branch) => String(branch?._id || branch))
+        .filter(Boolean),
+    ),
+  ];
+};
+
 // Create form record
 const createFormRecord = async (req, res) => {
   try {
@@ -54,14 +70,10 @@ const createFormRecord = async (req, res) => {
     //   });
     // }
 
-    // ----------------------------------
     // Determine branch
-    // ----------------------------------
-
     let assignedBranch;
 
     if (req.user.role === "admin") {
-      // Admin can select branch
       if (!branch) {
         return res.status(400).json({
           message: "Branch is required for admin",
@@ -70,16 +82,34 @@ const createFormRecord = async (req, res) => {
 
       assignedBranch = branch;
     } else {
-      // User MUST use their assigned branch
-      if (!req.user.branch) {
+      const assignedBranchIds = getAssignedBranchIds(req.user);
+
+      if (assignedBranchIds.length === 0) {
         return res.status(400).json({
-          message: "User does not have an assigned branch",
+          message: "User does not have any assigned branches",
         });
       }
 
-      assignedBranch = req.user.branch._id;
-    }
+      if (!branch) {
+        return res.status(400).json({
+          message: "Please select a branch",
+        });
+      }
 
+      if (!mongoose.Types.ObjectId.isValid(branch)) {
+        return res.status(400).json({
+          message: "Invalid branch ID",
+        });
+      }
+
+      if (!assignedBranchIds.includes(String(branch))) {
+        return res.status(403).json({
+          message: "You cannot create records for an unassigned branch",
+        });
+      }
+
+      assignedBranch = branch;
+    }
     // ----------------------------------
     // Check branch
     // ----------------------------------
@@ -239,24 +269,48 @@ const getFormRecords = async (req, res) => {
 
     const filter = {};
 
-    // ----------------------------------
     // Branch access control
-    // ----------------------------------
-
     if (req.user.role === "admin") {
-      // Admin can filter by branch
+      // Admin can see all branches or filter by one branch
       if (branch) {
+        if (!mongoose.Types.ObjectId.isValid(branch)) {
+          return res.status(400).json({
+            message: "Invalid branch ID",
+          });
+        }
+
         filter.branch = branch;
       }
     } else {
-      // User can ONLY see assigned branch
-      if (!req.user.branch) {
-        return res.status(400).json({
-          message: "User does not have an assigned branch",
+      const assignedBranchIds = getAssignedBranchIds(req.user);
+
+      if (assignedBranchIds.length === 0) {
+        return res.status(403).json({
+          message: "User does not have any assigned branches",
         });
       }
 
-      filter.branch = req.user.branch._id;
+      // Default: show records from all assigned branches
+      filter.branch = {
+        $in: assignedBranchIds,
+      };
+
+      // Optional filter: show one assigned branch
+      if (branch) {
+        if (!mongoose.Types.ObjectId.isValid(branch)) {
+          return res.status(400).json({
+            message: "Invalid branch ID",
+          });
+        }
+
+        if (!assignedBranchIds.includes(String(branch))) {
+          return res.status(403).json({
+            message: "You do not have access to this branch",
+          });
+        }
+
+        filter.branch = branch;
+      }
     }
 
     // ----------------------------------
@@ -376,22 +430,19 @@ const updateFormRecord = async (req, res) => {
         message: "Form record not found",
       });
     }
-
-    // ----------------------------------
     // Branch access control
-    // ----------------------------------
+    if (req.user.role !== "admin") {
+      const assignedBranchIds = getAssignedBranchIds(req.user);
 
-    if (req.user.role === "user") {
-      // User can edit ONLY their assigned branch
-      if (!req.user.branch) {
-        return res.status(400).json({
-          message: "User does not have an assigned branch",
+      if (assignedBranchIds.length === 0) {
+        return res.status(403).json({
+          message: "User does not have any assigned branches",
         });
       }
 
-      if (record.branch.toString() !== req.user.branch._id.toString()) {
+      if (!assignedBranchIds.includes(String(record.branch))) {
         return res.status(403).json({
-          message: "You cannot edit records from another branch",
+          message: "You cannot edit records from an unassigned branch",
         });
       }
     }
@@ -602,15 +653,11 @@ const updateFormRecord = async (req, res) => {
   }
 };
 
-
-
 const getFormRecordHistory = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const record = await FormRecord.findById(id).select(
-      "_id branch",
-    );
+    const record = await FormRecord.findById(id).select("_id branch");
 
     if (!record) {
       return res.status(404).json({
@@ -619,20 +666,18 @@ const getFormRecordHistory = async (req, res) => {
     }
 
     // Users can only view history for their assigned branch.
-    if (req.user.role === "user") {
-      const userBranchId = req.user.branch?._id
-        ? req.user.branch._id.toString()
-        : req.user.branch?.toString();
+    if (req.user.role !== "admin") {
+      const assignedBranchIds = getAssignedBranchIds(req.user);
 
-      if (!userBranchId) {
+      if (assignedBranchIds.length === 0) {
         return res.status(403).json({
-          message: "User does not have an assigned branch",
+          message: "User does not have any assigned branches",
         });
       }
 
-      if (record.branch.toString() !== userBranchId) {
+      if (!assignedBranchIds.includes(String(record.branch))) {
         return res.status(403).json({
-          message: "You cannot view history from another branch",
+          message: "You cannot view history from an unassigned branch",
         });
       }
     }
@@ -655,7 +700,6 @@ const getFormRecordHistory = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   createFormRecord,

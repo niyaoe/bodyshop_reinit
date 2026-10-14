@@ -1,7 +1,6 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
-const Branch = require("../models/Branch");
 
 const login = async (req, res) => {
   try {
@@ -14,8 +13,10 @@ const login = async (req, res) => {
     }
 
     const user = await User.findOne({
-      email: email.toLowerCase(),
-    }).populate("branch", "name code");
+      email: email.toLowerCase().trim(),
+    })
+      .populate("branch", "name code")
+      .populate("branches", "name code");
 
     if (!user) {
       return res.status(401).json({
@@ -29,10 +30,7 @@ const login = async (req, res) => {
       });
     }
 
-    const isPasswordMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
 
     if (!isPasswordMatch) {
       return res.status(401).json({
@@ -53,6 +51,12 @@ const login = async (req, res) => {
         email: user.email,
         role: user.role,
         branch: user.branch,
+        branches:
+          user.branches?.length > 0
+            ? user.branches
+            : user.branch
+              ? [user.branch]
+              : [],
       },
     });
   } catch (error) {

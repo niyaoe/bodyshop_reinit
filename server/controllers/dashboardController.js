@@ -3,6 +3,22 @@ const Branch = require("../models/Branch");
 const FormRecord = require("../models/FormRecord");
 const Status = require("../models/Status");
 const VehicleModel = require("../models/VehicleModel");
+const mongoose = require("mongoose");
+
+const getAssignedBranchIds = (user) => {
+  const assignedBranches = [
+    ...(user.branches || []),
+    ...(user.branch ? [user.branch] : []),
+  ];
+
+  return [
+    ...new Set(
+      assignedBranches
+        .map((branch) => String(branch?._id || branch))
+        .filter(Boolean),
+    ),
+  ];
+};
 
 const getDashboard = async (req, res) => {
   try {
@@ -23,17 +39,46 @@ const getDashboard = async (req, res) => {
     // ----------------------------------
 
     if (req.user.role === "admin") {
+      // Admin can see all branches or filter by one branch
       if (branch) {
-        filter.branch = branch;
+        if (!mongoose.Types.ObjectId.isValid(branch)) {
+          return res.status(400).json({
+            message: "Invalid branch ID",
+          });
+        }
+
+        filter.branch = new mongoose.Types.ObjectId(branch);
       }
     } else {
-      if (!req.user.branch) {
-        return res.status(400).json({
-          message: "User does not have an assigned branch",
+      const assignedBranchIds = getAssignedBranchIds(req.user);
+
+      if (assignedBranchIds.length === 0) {
+        return res.status(403).json({
+          message: "User does not have any assigned branches",
         });
       }
 
-      filter.branch = req.user.branch._id;
+      // Default: all assigned branches
+      filter.branch = {
+        $in: assignedBranchIds.map((id) => new mongoose.Types.ObjectId(id)),
+      };
+
+      // Optional: filter to one assigned branch
+      if (branch) {
+        if (!mongoose.Types.ObjectId.isValid(branch)) {
+          return res.status(400).json({
+            message: "Invalid branch ID",
+          });
+        }
+
+        if (!assignedBranchIds.includes(String(branch))) {
+          return res.status(403).json({
+            message: "You do not have access to this branch",
+          });
+        }
+
+        filter.branch = new mongoose.Types.ObjectId(branch);
+      }
     }
 
     // ----------------------------------

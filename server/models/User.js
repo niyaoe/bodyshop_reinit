@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
@@ -27,11 +28,20 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
 
+    // Keep temporarily for existing users and backward compatibility
     branch: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Branch",
       default: null,
     },
+
+    // New field: users can be assigned multiple branches
+    branches: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Branch",
+      },
+    ],
 
     isActive: {
       type: Boolean,
