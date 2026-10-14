@@ -431,20 +431,21 @@ const updateFormRecord = async (req, res) => {
       });
     }
     // Branch access control
-    if (req.user.role !== "admin") {
-      const assignedBranchIds = getAssignedBranchIds(req.user);
 
-      if (assignedBranchIds.length === 0) {
-        return res.status(403).json({
-          message: "User does not have any assigned branches",
-        });
+    if (req.body.branch !== undefined && req.body.branch !== "") {
+      const requestedBranchId = String(req.body.branch);
+
+      if (req.user.role !== "admin") {
+        const assignedBranchIds = getAssignedBranchIds(req.user);
+
+        if (!assignedBranchIds.includes(requestedBranchId)) {
+          return res.status(403).json({
+            message: "You cannot move records to an unassigned branch",
+          });
+        }
       }
 
-      if (!assignedBranchIds.includes(String(record.branch))) {
-        return res.status(403).json({
-          message: "You cannot edit records from an unassigned branch",
-        });
-      }
+      record.branch = req.body.branch;
     }
 
     // ----------------------------------
