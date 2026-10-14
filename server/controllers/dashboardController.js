@@ -86,14 +86,14 @@ const getDashboard = async (req, res) => {
     // ----------------------------------
 
     if (fromDate || toDate) {
-      filter.roDate = {};
+      filter.promisedDeliveryDate = {};
 
       if (fromDate) {
-        filter.roDate.$gte = new Date(`${fromDate}T00:00:00.000Z`);
+        filter.promisedDeliveryDate.$gte = new Date(`${fromDate}T00:00:00.000Z`);
       }
 
       if (toDate) {
-        filter.roDate.$lte = new Date(`${toDate}T23:59:59.999Z`);
+        filter.promisedDeliveryDate.$lte = new Date(`${toDate}T23:59:59.999Z`);
       }
     }
 

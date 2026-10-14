@@ -3,39 +3,72 @@ const mongoose = require("mongoose");
 const ServiceAdvisor = require("../models/ServiceAdvisor");
 const Branch = require("../models/Branch");
 
+
 // Get service advisers
 const getServiceAdvisors = async (req, res) => {
   try {
     const isAdmin = req.user.role === "admin";
+    const requestedBranchId = req.query.branchId || req.query.branch;
 
-    // Users can only access advisers from their own branch.
-    const userBranchId =
-      req.user.branch?._id || req.user.branch;
+    let filter = {
+      isActive: true,
+    };
 
-    if (!isAdmin && !userBranchId) {
-      return res.status(403).json({
-        message: "No branch assigned to this user",
-      });
-    }
+    if (isAdmin) {
+      if (req.query.includeInactive === "true") {
+        delete filter.isActive;
+      }
 
-    const filter = isAdmin
-      ? req.query.includeInactive === "true"
-        ? {}
-        : { isActive: true }
-      : {
-          branch: userBranchId,
-          isActive: true,
-        };
+      // Admin can optionally filter by branch
+      if (requestedBranchId) {
+        if (!mongoose.isValidObjectId(requestedBranchId)) {
+          return res.status(400).json({
+            message: "Invalid branch ID",
+          });
+        }
 
-    // Optional branch filter for admin
-    if (isAdmin && req.query.branchId) {
-      if (!mongoose.isValidObjectId(req.query.branchId)) {
-        return res.status(400).json({
-          message: "Invalid branch ID",
+        filter.branch = requestedBranchId;
+      }
+    } else {
+      // Support both the legacy single branch and multiple branches
+      const assignedBranchIds = [
+        ...(Array.isArray(req.user.branches)
+          ? req.user.branches.map((branch) =>
+              String(branch?._id || branch)
+            )
+          : []),
+        ...(req.user.branch
+          ? [String(req.user.branch?._id || req.user.branch)]
+          : []),
+      ];
+
+      const uniqueBranchIds = [...new Set(assignedBranchIds)];
+
+      if (uniqueBranchIds.length === 0) {
+        return res.status(403).json({
+          message: "No branch assigned to this user",
         });
       }
 
-      filter.branch = req.query.branchId;
+      // If a branch is selected, verify it is assigned to this user
+      if (requestedBranchId) {
+        if (!mongoose.isValidObjectId(requestedBranchId)) {
+          return res.status(400).json({
+            message: "Invalid branch ID",
+          });
+        }
+
+        if (!uniqueBranchIds.includes(String(requestedBranchId))) {
+          return res.status(403).json({
+            message: "You do not have access to this branch",
+          });
+        }
+
+        filter.branch = requestedBranchId;
+      } else {
+        // No branch selected: show advisers from all assigned branches
+        filter.branch = { $in: uniqueBranchIds };
+      }
     }
 
     const serviceAdvisors = await ServiceAdvisor.find(filter)
@@ -48,11 +81,13 @@ const getServiceAdvisors = async (req, res) => {
     });
   } catch (error) {
     console.error("Get service advisers error:", error);
+
     return res.status(500).json({
       message: "Server error",
     });
   }
 };
+
 
 // Create service adviser (admin only)
 const createServiceAdvisor = async (req, res) => {
