@@ -13,33 +13,14 @@ const authorize = require("../middleware/roleMiddleware");
 const router = express.Router();
 
 // Get active statuses
-router.get(
-  "/",
-  protect,
-  authorize("admin", "user"),
-  getStatuses
-);
+
+router.get("/", protect, authorize("admin", "manager", "user"), getStatuses);
 
 // Admin only
-router.post(
-  "/",
-  protect,
-  authorize("admin"),
-  createStatus
-);
+router.post("/", protect, authorize("admin"), createStatus);
 
-router.put(
-  "/:id",
-  protect,
-  authorize("admin"),
-  updateStatus
-);
+router.put("/:id", protect, authorize("admin"), updateStatus);
 
-router.delete(
-  "/:id",
-  protect,
-  authorize("admin"),
-  deleteStatus
-);
+router.delete("/:id", protect, authorize("admin"), deleteStatus);
 
 module.exports = router;

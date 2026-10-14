@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 
@@ -13,7 +12,13 @@ const protect = require("../middleware/authMiddleware");
 const authorize = require("../middleware/roleMiddleware");
 
 // Get active models: admin and user
-router.get("/", protect, authorize("admin", "user"), getVehicleModels);
+
+router.get(
+  "/",
+  protect,
+  authorize("admin", "manager", "user"),
+  getVehicleModels,
+);
 
 // Create model: admin only
 router.post("/", protect, authorize("admin"), createVehicleModel);

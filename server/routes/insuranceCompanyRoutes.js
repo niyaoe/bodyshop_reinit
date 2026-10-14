@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 
@@ -12,7 +11,13 @@ const {
 const protect = require("../middleware/authMiddleware");
 const authorize = require("../middleware/roleMiddleware");
 
-router.get("/", protect, authorize("admin", "user"), getInsuranceCompanies);
+router.get(
+  "/",
+  protect,
+  authorize("admin", "manager", "user"),
+  getInsuranceCompanies,
+);
+
 router.post("/", protect, authorize("admin"), createInsuranceCompany);
 router.put("/:id", protect, authorize("admin"), updateInsuranceCompany);
 router.delete("/:id", protect, authorize("admin"), deleteInsuranceCompany);

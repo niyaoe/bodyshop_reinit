@@ -1,4 +1,3 @@
-
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const Branch = require("../models/Branch");
@@ -18,7 +17,7 @@ const validateBranches = async (branchIds) => {
   const mongoose = require("mongoose");
 
   const invalidId = uniqueIds.some(
-    (id) => !mongoose.Types.ObjectId.isValid(id)
+    (id) => !mongoose.Types.ObjectId.isValid(id),
   );
 
   if (invalidId) {
@@ -37,9 +36,7 @@ const validateBranches = async (branchIds) => {
     };
   }
 
-  const inactiveBranch = branches.find(
-    (branch) => !branch.isActive
-  );
+  const inactiveBranch = branches.find((branch) => !branch.isActive);
 
   if (inactiveBranch) {
     return {
@@ -53,7 +50,13 @@ const validateBranches = async (branchIds) => {
 // Create user
 const createUser = async (req, res) => {
   try {
-    const { name, email, password, branch, branches } = req.body;
+    const { name, email, password, branch, branches, role = "user" } = req.body;
+
+    if (!["user", "manager"].includes(role)) {
+      return res.status(400).json({
+        message: "Role must be user or manager",
+      });
+    }
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -94,7 +97,7 @@ const createUser = async (req, res) => {
       name: name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
-      role: "user",
+      role,
       branches: validation.branches.map((item) => item._id),
 
       // Keep legacy field synchronized with the first assigned branch
@@ -188,7 +191,8 @@ const getUserById = async (req, res) => {
 // Update user
 const updateUser = async (req, res) => {
   try {
-    const { name, email, password, branch, branches, isActive } = req.body;
+    const { name, email, password, branch, branches, isActive, role } =
+      req.body;
 
     const user = await User.findById(req.params.id);
 
@@ -198,11 +202,25 @@ const updateUser = async (req, res) => {
       });
     }
 
+    if (user.role === "admin") {
+      return res.status(403).json({
+        message: "Admin accounts cannot be modified through this API",
+      });
+    }
+
+    if (role !== undefined) {
+      if (!["user", "manager"].includes(role)) {
+        return res.status(400).json({
+          message: "Role must be user or manager",
+        });
+      }
+
+      user.role = role;
+    }
+
     // Update branch assignments only when the request includes them
     if (Array.isArray(branches) || branch) {
-      const branchIds = Array.isArray(branches)
-        ? branches
-        : [branch];
+      const branchIds = Array.isArray(branches) ? branches : [branch];
 
       const validation = await validateBranches(branchIds);
 
@@ -273,6 +291,12 @@ const deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         message: "User not found",
+      });
+    }
+
+    if (user.role === "admin") {
+      return res.status(403).json({
+        message: "Admin accounts cannot be deactivated through this API",
       });
     }
 

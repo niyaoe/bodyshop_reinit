@@ -10,7 +10,12 @@ const {
 const protect = require("../middleware/authMiddleware");
 const authorize = require("../middleware/roleMiddleware");
 
-router.get("/", protect, getServiceAdvisors);
+router.get(
+  "/",
+  protect,
+  authorize("admin", "manager", "user"),
+  getServiceAdvisors,
+);
 
 router.post("/", protect, authorize("admin"), createServiceAdvisor);
 

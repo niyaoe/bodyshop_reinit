@@ -12,19 +12,30 @@ const authorize = require("../middleware/roleMiddleware");
 
 const router = express.Router();
 
-//get records
-router.get("/", protect, authorize("admin", "user"), getFormRecords);
+// Get records
+router.get("/", protect, authorize("admin", "manager", "user"), getFormRecords);
 
-// Admin + User
-router.post("/", protect, authorize("admin", "user"), createFormRecord);
+// Create record
+router.post(
+  "/",
+  protect,
+  authorize("admin", "manager", "user"),
+  createFormRecord,
+);
 
 // Update record
-router.put("/:id", protect, authorize("admin", "user"), updateFormRecord);
+router.put(
+  "/:id",
+  protect,
+  authorize("admin", "manager", "user"),
+  updateFormRecord,
+);
 
+// View record history
 router.get(
   "/:id/history",
   protect,
-  authorize("admin","user"),
+  authorize("admin", "manager", "user"),
   getFormRecordHistory,
 );
 

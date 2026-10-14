@@ -16,9 +16,14 @@ const router = express.Router();
 // Admin only
 router.post("/", protect, authorize("admin"), createBranch);
 
-router.get("/", protect, authorize("admin" ,"user"), getBranches);
+router.get("/", protect, authorize("admin", "manager", "user"), getBranches);
 
-router.get("/:id", protect, authorize("admin"), getBranchById);
+router.get(
+  "/:id",
+  protect,
+  authorize("admin", "manager", "user"),
+  getBranchById,
+);
 
 router.put("/:id", protect, authorize("admin"), updateBranch);
 
