@@ -6,6 +6,7 @@ const emptyForm = {
   name: "",
   email: "",
   password: "",
+  role: "user",
   branches: [],
 };
 
@@ -87,6 +88,7 @@ function UserManagement() {
       name: user.name || "",
       email: user.email || "",
       password: "",
+      role: user.role === "manager" ? "manager" : "user",
       branches: assignedBranches,
     });
 
@@ -115,6 +117,7 @@ function UserManagement() {
       const payload = {
         name: form.name.trim(),
         email: form.email.trim(),
+        role: form.role,
         branches: form.branches,
       };
 
@@ -193,8 +196,8 @@ function UserManagement() {
     <div className="bs-user-management">
       <div className="bs-user-heading">
         <div>
-          <h3>User Management</h3>
-          <p>Manage accounts and branch assignments.</p>
+          <h3>Account Management</h3>
+          <p>Manage users, managers, and branch assignments.</p>
         </div>
 
         <button
@@ -223,7 +226,11 @@ function UserManagement() {
       <section className="bs-user-form-section">
         <div className="bs-user-section-title">
           <div>
-            <h4>{editingId ? "Edit user" : "Create user"}</h4>
+            <h4>
+              {editingId
+                ? `Edit ${form.role === "manager" ? "manager" : "user"}`
+                : `Create ${form.role === "manager" ? "manager" : "user"}`}
+            </h4>
             <p>
               {editingId
                 ? "Update account details and branch."
@@ -267,6 +274,19 @@ function UserManagement() {
               autoComplete="email"
               required
             />
+          </label>
+
+          <label>
+            Role
+            <select
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+              required
+            >
+              <option value="user">User</option>
+              <option value="manager">Manager</option>
+            </select>
           </label>
 
           <div className="bs-user-branch-field">
@@ -329,7 +349,7 @@ function UserManagement() {
                 ? "Saving..."
                 : editingId
                   ? "Save changes"
-                  : "Create user"}
+                  : `Create ${form.role === "manager" ? "manager" : "user"}`}
             </button>
 
             {editingId && (
