@@ -114,7 +114,7 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
             getStatuses(),
             api.get("/vehicle-models"),
             api.get("/insurance-companies"),
-            api.get("/service-advisors"),
+            // api.get("/service-advisors"),
           ]);
 
         setStatuses(statusData.statuses || statusData || []);
@@ -123,7 +123,7 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
 
         setInsuranceCompanies(insuranceData.data.insuranceCompanies || []);
 
-        setServiceAdvisors(advisorData.data.serviceAdvisors || []);
+        // setServiceAdvisors(advisorData.data.serviceAdvisors || []);
 
         if (user?.role === "admin") {
           const branchData = await getBranches();
@@ -148,6 +148,30 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
 
     loadFormData();
   }, [isOpen, user?.role]);
+
+  useEffect(() => {
+  if (!isOpen || !form.branch) {
+    setServiceAdvisors([]);
+    return;
+  }
+
+  const fetchServiceAdvisors = async () => {
+    try {
+      const response = await api.get("/service-advisors", {
+        params: { branch: form.branch },
+      });
+
+      setServiceAdvisors(
+        response.data.serviceAdvisors || []
+      );
+    } catch (error) {
+      console.error("Failed to load service advisors:", error);
+      setServiceAdvisors([]);
+    }
+  };
+
+  fetchServiceAdvisors();
+}, [isOpen, form.branch]);
 
   /*
 
