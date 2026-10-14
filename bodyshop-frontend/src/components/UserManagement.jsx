@@ -6,7 +6,7 @@ const emptyForm = {
   name: "",
   email: "",
   password: "",
-  branch: "",
+  branches: [],
 };
 
 function UserManagement() {
@@ -64,14 +64,30 @@ function UserManagement() {
     }));
   };
 
+  const handleBranchToggle = (branchId) => {
+    setForm((previous) => ({
+      ...previous,
+      branches: previous.branches.includes(branchId)
+        ? previous.branches.filter((id) => id !== branchId)
+        : [...previous.branches, branchId],
+    }));
+  };
+
   const handleEdit = (user) => {
     setEditingId(user._id);
+
+    const assignedBranches =
+      user.branches?.length > 0
+        ? user.branches.map((branch) => branch._id)
+        : user.branch?._id
+          ? [user.branch._id]
+          : [];
 
     setForm({
       name: user.name || "",
       email: user.email || "",
       password: "",
-      branch: user.branch?._id || "",
+      branches: assignedBranches,
     });
 
     setError("");
@@ -83,8 +99,8 @@ function UserManagement() {
     setError("");
     setSuccess("");
 
-    if (!form.name.trim() || !form.email.trim() || !form.branch) {
-      setError("Name, email, and branch are required.");
+    if (!form.name.trim() || !form.email.trim() || form.branches.length === 0) {
+      setError("Name, email, and at least one branch are required.");
       return;
     }
 
@@ -99,7 +115,7 @@ function UserManagement() {
       const payload = {
         name: form.name.trim(),
         email: form.email.trim(),
-        branch: form.branch,
+        branches: form.branches,
       };
 
       if (form.password.trim()) {
@@ -253,24 +269,44 @@ function UserManagement() {
             />
           </label>
 
-          <label>
-            Branch
-            <select
-              name="branch"
-              value={form.branch}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select branch</option>
+          <div className="bs-user-branch-field">
+            <span className="bs-user-field-label">Assigned branches</span>
+
+            <p className="bs-user-branch-hint">
+              Select all branches this user can access.
+            </p>
+
+            <div className="bs-user-branch-options">
               {branches
-                .filter((branch) => branch.isActive !== false)
+                .filter((branch) => {
+                  // Show active branches, plus inactive branches
+                  // already assigned to this user during editing.
+                  return (
+                    branch.isActive !== false ||
+                    form.branches.includes(branch._id)
+                  );
+                })
                 .map((branch) => (
-                  <option key={branch._id} value={branch._id}>
-                    {branch.name} ({branch.code})
-                  </option>
+                  <label key={branch._id} className="bs-user-branch-option">
+                    <input
+                      type="checkbox"
+                      checked={form.branches.includes(branch._id)}
+                      onChange={() => handleBranchToggle(branch._id)}
+                    />
+
+                    <span>
+                      <strong>{branch.name}</strong>
+                      <small>{branch.code}</small>
+                    </span>
+                  </label>
                 ))}
-            </select>
-          </label>
+            </div>
+
+            <small className="bs-user-branch-count">
+              {form.branches.length} branch
+              {form.branches.length !== 1 ? "es" : ""} selected
+            </small>
+          </div>
 
           <label>
             Password {editingId && "(leave blank to keep current)"}
@@ -351,9 +387,25 @@ function UserManagement() {
                     </td>
 
                     <td>
-                      <div className="bs-user-branch">
-                        <span>{user.branch?.name || "No branch"}</span>
-                        {user.branch?.code && <small>{user.branch.code}</small>}
+                      <div className="bs-user-branch-list">
+                        {(user.branches?.length > 0
+                          ? user.branches
+                          : user.branch
+                            ? [user.branch]
+                            : []
+                        ).map((branch) => (
+                          <span
+                            key={branch._id}
+                            className="bs-user-branch-chip"
+                          >
+                            {branch.name}
+                            <small>{branch.code}</small>
+                          </span>
+                        ))}
+
+                        {!user.branches?.length && !user.branch && (
+                          <span>No branch</span>
+                        )}
                       </div>
                     </td>
 

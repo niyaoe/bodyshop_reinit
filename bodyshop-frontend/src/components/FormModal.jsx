@@ -125,10 +125,19 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
 
         setServiceAdvisors(advisorData.data.serviceAdvisors || []);
 
-        // Branches are required only for admin
         if (user?.role === "admin") {
           const branchData = await getBranches();
           setBranches(branchData.branches || branchData || []);
+        } else {
+          // Use all branches assigned to the logged-in user.
+          const assignedBranches =
+            user?.branches?.length > 0
+              ? user.branches
+              : user?.branch
+                ? [user.branch]
+                : [];
+
+          setBranches(assignedBranches);
         }
       } catch (error) {
         setError(error.response?.data?.message || "Failed to load form data");
@@ -203,7 +212,20 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
         billDate: formatDateForInput(editRecord.billDate),
       });
     } else {
-      setForm(initialForm);
+      const assignedBranches =
+        user?.branches?.length > 0
+          ? user.branches
+          : user?.branch
+            ? [user.branch]
+            : [];
+
+      setForm({
+        ...initialForm,
+        branch:
+          user?.role === "admin"
+            ? ""
+            : assignedBranches[0]?._id || assignedBranches[0] || "",
+      });
     }
   }, [editRecord, isOpen]);
 
@@ -257,15 +279,9 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
             : Number(form.partsBillAmount),
       };
 
-      /*
+     
 
-       * User branch is controlled by backend.
-
-       */
-
-      if (user?.role !== "admin") {
-        delete payload.branch;
-      }
+      
 
       if (isEditMode) {
         await updateFormRecord(editRecord._id, payload);
@@ -357,30 +373,24 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
             </p>
           </div>
 
-          
-
-          <div style={{display:"flex" , gap:"10px"}}>
-            {isEditMode && user?.role === "admin" && (
+          <div style={{ display: "flex", gap: "10px" }}>
+            {isEditMode && (
+              <button
+                type="button"
+                className="bs-form-modal-history-button"
+                onClick={handleViewHistory}
+              >
+                {historyOpen ? "Back to Record" : "History"}
+              </button>
+            )}
             <button
               type="button"
-              className="bs-form-modal-history-button"
-              onClick={handleViewHistory}
+              className="bs-form-modal-close"
+              onClick={onClose}
             >
-              {historyOpen ? "Back to Record" : "History"}
+              ×
             </button>
-          )}
-          <button
-            type="button"
-            className="bs-form-modal-close"
-            onClick={onClose}
-          >
-            ×
-          </button>
-
           </div>
-
-          
-          
         </div>
 
         {/* ERROR */}
@@ -477,24 +487,27 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
               onSubmit={handleSubmit}
             >
               <div className="bs-form-modal-fields-grid">
-                {user?.role === "admin" && (
-                  <div className="bs-form-modal-field">
-                    <label htmlFor="bs-branch">Branch</label>
-                    <select
-                      id="bs-branch"
-                      name="branch"
-                      value={form.branch}
-                      onChange={handleChange}
-                    >
-                      <option value="">Select branch</option>
-                      {branches.map((item) => (
-                        <option key={item._id} value={item._id}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <div className="bs-form-modal-field">
+                  <label htmlFor="bs-branch">
+                    Branch <span className="bs-form-modal-required">*</span>
+                  </label>
+
+                  <select
+                    id="bs-branch"
+                    name="branch"
+                    value={form.branch}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select branch</option>
+
+                    {branches.map((item) => (
+                      <option key={item._id} value={item._id}>
+                        {item.name} {item.code ? `(${item.code})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className="bs-form-modal-field">
                   <label htmlFor="bs-regNo">

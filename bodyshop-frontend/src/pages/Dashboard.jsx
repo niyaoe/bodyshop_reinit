@@ -75,17 +75,28 @@ function Dashboard() {
 
   useEffect(() => {
     const loadBranches = async () => {
-      if (user?.role !== "admin") return;
-
-      try {
-        const response = await api.get("/branches");
-        setBranches(response.data.branches || response.data || []);
-      } catch (error) {
-        console.error(
-          "Failed to load branches:",
-          error.response?.data?.message || error.message,
-        );
+      if (user?.role === "admin") {
+        try {
+          const response = await api.get("/branches");
+          setBranches(response.data.branches || response.data || []);
+        } catch (error) {
+          console.error(
+            "Failed to load branches:",
+            error.response?.data?.message || error.message,
+          );
+        }
+        return;
       }
+
+      // Regular users: use only their assigned branches from login data.
+      const assignedBranches =
+        user?.branches?.length > 0
+          ? user.branches
+          : user?.branch
+            ? [user.branch]
+            : [];
+
+      setBranches(assignedBranches);
     };
 
     loadBranches();
@@ -275,23 +286,27 @@ function Dashboard() {
                   />
                 </div>
 
-                {user?.role === "admin" && (
-                  <div className="bs-dashboard-filter-field">
-                    <label className="bs-dashboard-filter-label">Branch</label>
-                    <select
-                      className="bs-dashboard-filter-input"
-                      value={branch}
-                      onChange={(e) => setBranch(e.target.value)}
-                    >
-                      <option value="">All Branches</option>
-                      {branches.map((item) => (
-                        <option key={item._id} value={item._id}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <div className="bs-dashboard-filter-field">
+                  <label className="bs-dashboard-filter-label">Branch</label>
+
+                  <select
+                    className="bs-dashboard-filter-input"
+                    value={branch}
+                    onChange={(e) => setBranch(e.target.value)}
+                  >
+                    <option value="">
+                      {user?.role === "admin"
+                        ? "All Branches"
+                        : "All Assigned Branches"}
+                    </option>
+
+                    {branches.map((item) => (
+                      <option key={item._id} value={item._id}>
+                        {item.name} {item.code ? `(${item.code})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className="bs-dashboard-filter-field">
                   <label className="bs-dashboard-filter-label">From Date</label>
@@ -479,7 +494,6 @@ function Dashboard() {
             <div className="bs-dashboard-loading">Loading records...</div>
           )} */}
 
-          
           {error && <div className="bs-dashboard-error">{error}</div>}
 
           {!error && dashboardData && (
