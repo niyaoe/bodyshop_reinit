@@ -596,6 +596,7 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                     name="presentStatus"
                     value={form.presentStatus}
                     onChange={handleChange}
+                    required
                   >
                     <option value="">Select status</option>
                     {statuses.map((status) => (
