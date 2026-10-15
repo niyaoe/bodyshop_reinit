@@ -35,7 +35,8 @@ router.put(
 router.get(
   "/:id/history",
   protect,
-  authorize("admin", "manager", "user"),
+  authorize("admin"),
+  // authorize("admin", "manager", "user"),
   getFormRecordHistory,
 );
 
