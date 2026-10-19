@@ -164,6 +164,93 @@ const getDashboard = async (req, res) => {
       };
     }
 
+
+    // ----------------------------------
+    // Summary tile filter
+    // ----------------------------------
+
+    const { summaryTile, statusId } = req.query;
+
+    if (summaryTile) {
+      const tileSections = {
+        open: "open",
+        billed: "billed",
+        legalLoss: "legalLoss",
+      };
+
+      if (tileSections[summaryTile]) {
+        const tileStatuses = await Status.find({
+          section: tileSections[summaryTile],
+          isActive: true,
+        }).select("_id");
+
+        filter.presentStatus = {
+          $in: tileStatuses.map((status) => status._id),
+        };
+      } else {
+        const amountFields = {
+          openLabourEstimate: {
+            section: "open",
+            field: "labourEstimate",
+          },
+          openPartsEstimate: {
+            section: "open",
+            field: "partsEstimate",
+          },
+          legalLossLabourEstimate: {
+            section: "legalLoss",
+            field: "labourEstimate",
+          },
+          legalLossPartsEstimate: {
+            section: "legalLoss",
+            field: "partsEstimate",
+          },
+          billedLabourBill: {
+            section: "billed",
+            field: "labourBillAmount",
+          },
+          billedPartsBill: {
+            section: "billed",
+            field: "partsBillAmount",
+          },
+        };
+
+        const amountConfig = amountFields[summaryTile];
+
+        if (amountConfig) {
+          const tileStatuses = await Status.find({
+            section: amountConfig.section,
+            isActive: true,
+          }).select("_id");
+
+          filter.presentStatus = {
+            $in: tileStatuses.map((status) => status._id),
+          };
+
+          filter[amountConfig.field] = { $gt: 0 };
+        } else if (summaryTile !== "status") {
+          return res.status(400).json({
+            message: "Invalid summary tile",
+          });
+        }
+      }
+    }
+
+    if (statusId) {
+      const selectedStatus = await Status.findById(statusId).select(
+        "_id section isActive"
+      );
+
+      if (!selectedStatus || !selectedStatus.isActive) {
+        return res.status(400).json({
+          message: "Invalid or inactive status",
+        });
+      }
+
+      filter.presentStatus = selectedStatus._id;
+    }
+
+
     // ----------------------------------
     // Pagination
     // ----------------------------------
@@ -245,6 +332,7 @@ const getDashboard = async (req, res) => {
       totalPartsEstimate: openStats.totalPartsEstimate,
 
       statuses: openStatuses.map((status) => ({
+        id: status._id,
         name: status.name,
         count: countByStatusId.get(status._id.toString()) || 0,
       })),
