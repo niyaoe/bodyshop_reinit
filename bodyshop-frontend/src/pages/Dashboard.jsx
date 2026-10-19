@@ -28,6 +28,18 @@ function Dashboard() {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [summaryVisible, setSummaryVisible] = useState(false);
 
+  const [selectedSummaryTile, setSelectedSummaryTile] = useState(null);
+
+  const [selectedStatusId, setSelectedStatusId] = useState(null);
+
+  const handleSummaryTileClick = (tile, statusId = null) => {
+    setSelectedSummaryTile(tile);
+    setSelectedStatusId(statusId);
+    setPage(1);
+
+    fetchDashboard(activeSection, 1, tile, statusId);
+  };
+
   const handleCreateRecord = () => {
     setEditingRecord(null);
     setShowFormModal(true);
@@ -42,13 +54,17 @@ function Dashboard() {
     fetchDashboard(activeSection, page);
   };
 
+
   const fetchDashboard = async (
     section = activeSection,
     currentPage = page,
+    summaryTile = selectedSummaryTile,
+    statusId = null,
   ) => {
     try {
       setLoading(true);
       setError("");
+
       const params = { section, page: currentPage, limit };
 
       if (search.trim()) params.search = search.trim();
@@ -56,9 +72,15 @@ function Dashboard() {
       if (fromDate) params.fromDate = fromDate;
       if (toDate) params.toDate = toDate;
 
-      const data = await getDashboard(params);
-      // console.log(data);
+      if (summaryTile) {
+        params.summaryTile = summaryTile;
+      }
 
+      if (statusId) {
+        params.statusId = statusId;
+      }
+
+      const data = await getDashboard(params);
       setDashboardData(data);
     } catch (error) {
       setError(
@@ -68,6 +90,7 @@ function Dashboard() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchDashboard(activeSection, page);
@@ -143,9 +166,8 @@ function Dashboard() {
     >
       <div className="bs-dashboard-workspace">
         <aside
-          className={`bs-dashboard-sidebar ${
-            sidebarCollapsed ? "is-collapsed" : ""
-          }`}
+          className={`bs-dashboard-sidebar ${sidebarCollapsed ? "is-collapsed" : ""
+            }`}
           onMouseEnter={() => setSidebarCollapsed(false)}
           onMouseLeave={() => setSidebarCollapsed(true)}
         >
@@ -353,7 +375,12 @@ function Dashboard() {
                 <section className="bs-dashboard-summary">
                   {activeSection === "open" ? (
                     <>
-                      <div className="bs-dashboard-card">
+                      <button
+                        type="button"
+                        className="bs-dashboard-card bs-dashboard-summary-tile"
+                        onClick={() => handleSummaryTileClick("open")}
+                        title="View all open records"
+                      >
                         <span className="bs-dashboard-card-label">
                           Total Open Records
                         </span>
@@ -363,9 +390,14 @@ function Dashboard() {
                             0
                           ).toLocaleString("en-IN")}
                         </strong>
-                      </div>
+                      </button>
 
-                      <div className="bs-dashboard-card">
+                      <button
+                        type="button"
+                        className="bs-dashboard-card bs-dashboard-summary-tile"
+                        onClick={() => handleSummaryTileClick("openLabourEstimate")}
+                        title="View records with labour estimates"
+                      >
                         <span className="bs-dashboard-card-label">
                           Total Labour Estimate
                         </span>
@@ -376,9 +408,14 @@ function Dashboard() {
                               ?.totalLabourEstimate ?? 0
                           ).toLocaleString("en-IN")}
                         </strong>
-                      </div>
+                      </button>
 
-                      <div className="bs-dashboard-card">
+                      <button
+                        type="button"
+                        className="bs-dashboard-card bs-dashboard-summary-tile"
+                        onClick={() => handleSummaryTileClick("openPartsEstimate")}
+                        title="View records with parts estimates"
+                      >
                         <span className="bs-dashboard-card-label">
                           Total Parts Estimate
                         </span>
@@ -389,100 +426,134 @@ function Dashboard() {
                               ?.totalPartsEstimate ?? 0
                           ).toLocaleString("en-IN")}
                         </strong>
-                      </div>
+                      </button>
 
                       {(dashboardData.openStatusSummary?.statuses ?? []).map(
                         (status) => (
-                          <div className="bs-dashboard-card" key={status.name}>
+                          <button
+                            type="button"
+                            className="bs-dashboard-card bs-dashboard-summary-tile"
+                            key={status.id}
+                            onClick={() => handleSummaryTileClick("status", status.id)}
+                            title={`View ${status.name} records`}
+                          >
                             <span className="bs-dashboard-card-label">
                               {status.name}
                             </span>
                             <strong className="bs-dashboard-card-value">
                               {status.count.toLocaleString("en-IN")}
                             </strong>
-                          </div>
+                          </button>
                         ),
                       )}
                     </>
                   ) : activeSection === "billed" ? (
                     <>
-                      <div className="bs-dashboard-card">
+                      <button
+                        type="button"
+                        className="bs-dashboard-card bs-dashboard-summary-tile"
+                        onClick={() => handleSummaryTileClick("billed")}
+                        title="View billed records"
+                      >
                         <span className="bs-dashboard-card-label">
                           Total Billed Records
                         </span>
                         <strong className="bs-dashboard-card-value">
                           {(
-                            dashboardData.billedStatusSummary
-                              ?.totalBilledRecords ?? 0
+                            dashboardData.billedStatusSummary?.totalBilledRecords ?? 0
                           ).toLocaleString("en-IN")}
                         </strong>
-                      </div>
+                      </button>
 
-                      <div className="bs-dashboard-card">
+                      <button
+                        type="button"
+                        className="bs-dashboard-card bs-dashboard-summary-tile"
+                        onClick={() => handleSummaryTileClick("billedLabourBill")}
+                        title="View records with labour bill amounts"
+                      >
                         <span className="bs-dashboard-card-label">
                           Total Labour Bill
                         </span>
                         <strong className="bs-dashboard-card-value">
                           ₹
                           {(
-                            dashboardData.billedStatusSummary
-                              ?.totalLabourBill ?? 0
+                            dashboardData.billedStatusSummary?.totalLabourBill ?? 0
                           ).toLocaleString("en-IN")}
                         </strong>
-                      </div>
+                      </button>
 
-                      <div className="bs-dashboard-card">
+                      <button
+                        type="button"
+                        className="bs-dashboard-card bs-dashboard-summary-tile"
+                        onClick={() => handleSummaryTileClick("billedPartsBill")}
+                        title="View records with parts bill amounts"
+                      >
                         <span className="bs-dashboard-card-label">
                           Total Parts Bill
                         </span>
                         <strong className="bs-dashboard-card-value">
                           ₹
                           {(
-                            dashboardData.billedStatusSummary?.totalPartsBill ??
-                            0
+                            dashboardData.billedStatusSummary?.totalPartsBill ?? 0
                           ).toLocaleString("en-IN")}
                         </strong>
-                      </div>
+                      </button>
                     </>
                   ) : (
                     <>
-                      <div className="bs-dashboard-card">
+                      <button
+                        type="button"
+                        className="bs-dashboard-card bs-dashboard-summary-tile"
+                        onClick={() => handleSummaryTileClick("legalLoss")}
+                        title="View legal/loss records"
+                      >
                         <span className="bs-dashboard-card-label">
                           Total Legal / Loss Records
                         </span>
                         <strong className="bs-dashboard-card-value">
                           {(
-                            dashboardData.legalLossSummary
-                              ?.totalLegalLossRecords ?? 0
+                            dashboardData.legalLossSummary?.totalLegalLossRecords ?? 0
                           ).toLocaleString("en-IN")}
                         </strong>
-                      </div>
+                      </button>
 
-                      <div className="bs-dashboard-card">
+                      <button
+                        type="button"
+                        className="bs-dashboard-card bs-dashboard-summary-tile"
+                        onClick={() =>
+                          handleSummaryTileClick("legalLossLabourEstimate")
+                        }
+                        title="View legal/loss records with labour estimates"
+                      >
                         <span className="bs-dashboard-card-label">
                           Total Labour Estimate
                         </span>
                         <strong className="bs-dashboard-card-value">
                           ₹
                           {(
-                            dashboardData.legalLossSummary
-                              ?.totalLabourEstimate ?? 0
+                            dashboardData.legalLossSummary?.totalLabourEstimate ?? 0
                           ).toLocaleString("en-IN")}
                         </strong>
-                      </div>
+                      </button>
 
-                      <div className="bs-dashboard-card">
+                      <button
+                        type="button"
+                        className="bs-dashboard-card bs-dashboard-summary-tile"
+                        onClick={() =>
+                          handleSummaryTileClick("legalLossPartsEstimate")
+                        }
+                        title="View legal/loss records with parts estimates"
+                      >
                         <span className="bs-dashboard-card-label">
                           Total Parts Estimate
                         </span>
                         <strong className="bs-dashboard-card-value">
                           ₹
                           {(
-                            dashboardData.legalLossSummary
-                              ?.totalPartsEstimate ?? 0
+                            dashboardData.legalLossSummary?.totalPartsEstimate ?? 0
                           ).toLocaleString("en-IN")}
                         </strong>
-                      </div>
+                      </button>
                     </>
                   )}
                 </section>
@@ -564,8 +635,8 @@ function Dashboard() {
                           <td>
                             {record.yardEntryDate
                               ? new Date(
-                                  record.yardEntryDate,
-                                ).toLocaleDateString()
+                                record.yardEntryDate,
+                              ).toLocaleDateString()
                               : "-"}
                           </td>
                           <td>
@@ -593,8 +664,8 @@ function Dashboard() {
                           <td>
                             {record.nextPmsDate
                               ? new Date(
-                                  record.nextPmsDate,
-                                ).toLocaleDateString()
+                                record.nextPmsDate,
+                              ).toLocaleDateString()
                               : "-"}
                           </td>
 
@@ -608,8 +679,8 @@ function Dashboard() {
                           <td>
                             {record.whatsappGroupCreationDate
                               ? new Date(
-                                  record.whatsappGroupCreationDate,
-                                ).toLocaleDateString()
+                                record.whatsappGroupCreationDate,
+                              ).toLocaleDateString()
                               : "-"}
                           </td>
 
@@ -617,8 +688,8 @@ function Dashboard() {
                           <td>
                             {record.promisedDeliveryDate
                               ? new Date(
-                                  record.promisedDeliveryDate,
-                                ).toLocaleDateString()
+                                record.promisedDeliveryDate,
+                              ).toLocaleDateString()
                               : "-"}
                           </td>
 
