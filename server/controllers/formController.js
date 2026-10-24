@@ -654,6 +654,58 @@ const updateFormRecord = async (req, res) => {
   }
 };
 
+
+const deleteFormRecord = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        message: "Invalid record ID",
+      });
+    }
+
+    const record = await FormRecord.findById(id);
+
+    if (!record) {
+      return res.status(404).json({
+        message: "Form record not found",
+      });
+    }
+
+    // Branch access control: admins can delete any record.
+    // Other roles can delete only within their assigned branches.
+    if (req.user.role !== "admin") {
+      const assignedBranchIds = getAssignedBranchIds(req.user);
+
+      if (!assignedBranchIds.includes(String(record.branch))) {
+        return res.status(403).json({
+          message: "You cannot delete records from an unassigned branch",
+        });
+      }
+    }
+
+    // Remove related history before deleting the record.
+    await RecordHistory.deleteMany({
+      record: record._id,
+    });
+
+    await record.deleteOne();
+
+    return res.status(200).json({
+      message: "Form record deleted successfully",
+      deletedRecordId: id,
+    });
+  } catch (error) {
+    console.error("Delete form record error:", error);
+
+    return res.status(500).json({
+      message: "Failed to delete form record",
+    });
+  }
+};
+
+
 const getFormRecordHistory = async (req, res) => {
   try {
     const { id } = req.params;
@@ -707,4 +759,5 @@ module.exports = {
   getFormRecords,
   updateFormRecord,
   getFormRecordHistory,
+  deleteFormRecord,
 };

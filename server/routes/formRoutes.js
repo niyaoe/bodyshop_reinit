@@ -5,6 +5,7 @@ const {
   getFormRecords,
   updateFormRecord,
   getFormRecordHistory,
+  deleteFormRecord,
 } = require("../controllers/formController");
 
 const protect = require("../middleware/authMiddleware");
@@ -30,6 +31,8 @@ router.put(
   authorize("admin", "manager", "user"),
   updateFormRecord,
 );
+
+router.delete("/:id", protect, deleteFormRecord);
 
 // View record history
 router.get(

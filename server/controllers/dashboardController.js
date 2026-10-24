@@ -28,6 +28,9 @@ const getDashboard = async (req, res) => {
       fromDate,
       toDate,
       search,
+      jobType,
+      segment,
+      insuranceStatus,
       page = 1,
       limit = 20,
     } = req.query;
@@ -134,6 +137,59 @@ const getDashboard = async (req, res) => {
           },
         },
       ];
+    }
+
+    // Job type filter: M1, M2, M3, M4
+    if (jobType) {
+      const allowedJobTypes = ["M1", "M2", "M3", "M4"];
+
+      if (!allowedJobTypes.includes(jobType)) {
+        return res.status(400).json({
+          message: "Invalid job type",
+        });
+      }
+
+      filter.jobType = jobType;
+    }
+
+    // Segment filter: PV, BEV, CV, LMM, 3W
+    if (segment) {
+      const allowedSegments = ["PV", "BEV", "CV", "LMM", "3W"];
+
+      if (!allowedSegments.includes(segment)) {
+        return res.status(400).json({
+          message: "Invalid segment",
+        });
+      }
+
+      const matchingModels = await VehicleModel.find({
+        isActive: true,
+        subSegmentName: {
+          $regex: `^${segment}$`,
+          $options: "i",
+        },
+      }).select("name");
+
+      filter.model = {
+        $in: matchingModels.map((model) => model.name),
+      };
+    }
+
+    if (insuranceStatus) {
+      const allowedInsuranceStatuses = [
+        "In-House",
+        "Out-Side",
+        "Cash",
+        "Warranty",
+      ];
+
+      if (!allowedInsuranceStatuses.includes(insuranceStatus)) {
+        return res.status(400).json({
+          message: "Invalid insurance status",
+        });
+      }
+
+      filter.insuranceStatus = insuranceStatus;
     }
 
     // Keep branch, date and search filters for section summaries
