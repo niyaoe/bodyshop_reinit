@@ -32,6 +32,10 @@ function Dashboard() {
 
   const [selectedStatusId, setSelectedStatusId] = useState(null);
 
+  const [jobType, setJobType] = useState("");
+  const [segment, setSegment] = useState("");
+  const [insuranceStatus, setInsuranceStatus] = useState("");
+
   const handleSummaryTileClick = (tile, statusId = null) => {
     setSelectedSummaryTile(tile);
     setSelectedStatusId(statusId);
@@ -49,6 +53,31 @@ function Dashboard() {
     setEditingRecord(record);
     setShowFormModal(true);
   };
+
+
+  const handleDeleteRecord = async (record, event) => {
+    event.stopPropagation();
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete record ${record.roNumber || record.regNo || record.slNo}?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setError("");
+
+      await api.delete(`/forms/${record._id}`);
+
+      // Reload the current table and its filters.
+      fetchDashboard(activeSection, page);
+    } catch (error) {
+      setError(
+        error.response?.data?.message || "Failed to delete record"
+      );
+    }
+  };
+
 
   const handleModalSuccess = () => {
     fetchDashboard(activeSection, page);
@@ -71,6 +100,9 @@ function Dashboard() {
       if (branch) params.branch = branch;
       if (fromDate) params.fromDate = fromDate;
       if (toDate) params.toDate = toDate;
+      if (jobType) params.jobType = jobType;
+      if (segment) params.segment = segment;
+      if (insuranceStatus) params.insuranceStatus = insuranceStatus;
 
       if (summaryTile) {
         params.summaryTile = summaryTile;
@@ -94,7 +126,7 @@ function Dashboard() {
 
   useEffect(() => {
     fetchDashboard(activeSection, page);
-  }, [activeSection, page]);
+  }, [activeSection, page, jobType, segment, insuranceStatus]);
 
   useEffect(() => {
     const loadBranches = async () => {
@@ -141,7 +173,11 @@ function Dashboard() {
     setFromDate("");
     setToDate("");
     setPage(1);
+    setJobType("");
+    setSegment("");
     fetchDashboard(activeSection, 1);
+    setInsuranceStatus("");
+
   };
 
   const handleLogout = () => {
@@ -590,12 +626,73 @@ function Dashboard() {
                       <th>RO Date</th>
                       <th>RO</th>
                       <th>Model</th>
-                      <th>Segment</th>
-                      <th>Job</th>
+
+                      <th>
+                        <div className="bs-table-header-filter">
+                          <span>Segment</span>
+                          <select
+                            aria-label="Filter by segment"
+                            value={segment}
+                            onChange={(e) => {
+                              setSegment(e.target.value);
+                              setPage(1);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="">All</option>
+                            <option value="PV">PV</option>
+                            <option value="BEV">BEV</option>
+                            <option value="CV">CV</option>
+                            <option value="LMM">LMM</option>
+                            <option value="3W">3W</option>
+                          </select>
+                        </div>
+                      </th>
+                      <th>
+                        <div className="bs-table-header-filter">
+                          <span>Job</span>
+                          <select
+                            aria-label="Filter by job type"
+                            value={jobType}
+                            onChange={(e) => {
+                              setJobType(e.target.value);
+                              setPage(1);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="">All</option>
+                            <option value="M1">M1</option>
+                            <option value="M2">M2</option>
+                            <option value="M3">M3</option>
+                            <option value="M4">M4</option>
+                          </select>
+                        </div>
+                      </th>
+
+
                       <th>Status</th>
                       <th>Customer</th>
                       <th>Contact No</th>
-                      <th>Insu Status</th>
+                      <th>
+                        <div className="bs-table-header-filter">
+                          <span>Insu Status</span>
+                          <select
+                            aria-label="Filter by insurance status"
+                            value={insuranceStatus}
+                            onChange={(e) => {
+                              setInsuranceStatus(e.target.value);
+                              setPage(1);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="">All</option>
+                            <option value="In-House">In-House</option>
+                            <option value="Out-Side">Out-Side</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Warranty">Warranty</option>
+                          </select>
+                        </div>
+                      </th>
                       <th>Insu Name</th>
                       <th>SA</th>
                       <th>PMS Date</th>
@@ -608,6 +705,7 @@ function Dashboard() {
                       <th>Bill Date</th>
                       <th>Labour Amt</th>
                       <th>Parts Amt</th>
+                      <th>Actions</th>
 
                       {/* <th>Action</th> */}
                     </tr>
@@ -711,6 +809,16 @@ function Dashboard() {
 
                           {/* Parts Amount */}
                           <td>{record.partsBillAmount ?? "-"}</td>
+                          <td className="bs-record-actions-cell">
+                            <button
+                              type="button"
+                              className="bs-record-delete-button"
+                              onClick={(event) => handleDeleteRecord(record, event)}
+                              title="Delete record"
+                            >
+                              Delete
+                            </button>
+                          </td>
 
                           {/* <td>
                             <button
