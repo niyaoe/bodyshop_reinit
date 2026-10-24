@@ -32,7 +32,7 @@ router.put(
   updateFormRecord,
 );
 
-router.delete("/:id", protect, deleteFormRecord);
+router.delete("/:id", protect , authorize("admin"), deleteFormRecord);
 
 // View record history
 router.get(
