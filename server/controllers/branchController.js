@@ -44,11 +44,12 @@ const createBranch = async (req, res) => {
 };
 
 // Get all branches
+// Get active branches
 const getBranches = async (req, res) => {
   try {
-    const branches = await Branch.find().sort({
-      name: 1,
-    });
+    const branches = await Branch.find({
+      isActive: { $ne: false },
+    }).sort({ name: 1 });
 
     res.status(200).json({
       count: branches.length,
@@ -127,6 +128,7 @@ const updateBranch = async (req, res) => {
 };
 
 // Deactivate branch
+// Deactivate branch
 const deleteBranch = async (req, res) => {
   try {
     const branch = await Branch.findById(req.params.id);
@@ -137,18 +139,24 @@ const deleteBranch = async (req, res) => {
       });
     }
 
-    branch.isActive = false;
+    if (!branch.isActive) {
+      return res.status(400).json({
+        message: "Branch is already deactivated",
+      });
+    }
 
+    branch.isActive = false;
     await branch.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Branch deactivated successfully",
+      branchId: branch._id,
     });
   } catch (error) {
     console.error("Delete branch error:", error);
 
-    res.status(500).json({
-      message: "Server error",
+    return res.status(500).json({
+      message: error.message || "Server error",
     });
   }
 };

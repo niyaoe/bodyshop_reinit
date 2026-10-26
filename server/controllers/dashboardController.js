@@ -33,6 +33,7 @@ const getDashboard = async (req, res) => {
       jobType,
       segment,
       insuranceStatus,
+      serviceAdvisor, // NEW
       page = 1,
       limit = 20,
     } = req.query;
@@ -85,6 +86,26 @@ const getDashboard = async (req, res) => {
         filter.branch = new mongoose.Types.ObjectId(branch);
       }
     }
+
+    // Service advisers available for the user's accessible branches.
+    // Admin: all branches, or the selected branch.
+    // Manager/user: only their assigned branches.
+    const serviceAdvisorBranchFilter = {};
+
+    if (filter.branch) {
+      serviceAdvisorBranchFilter.branch = filter.branch;
+    }
+
+    const serviceAdvisors = (
+      await FormRecord.distinct(
+        "serviceAdvisor",
+        serviceAdvisorBranchFilter
+      )
+    )
+      .filter((name) => typeof name === "string" && name.trim())
+      .map((name) => name.trim())
+      .filter((name, index, array) => array.indexOf(name) === index)
+      .sort((a, b) => a.localeCompare(b));
 
     // ----------------------------------
     // Date filter
@@ -231,6 +252,11 @@ const getDashboard = async (req, res) => {
       }
 
       filter.insuranceStatus = insuranceStatus;
+    }
+
+    // Service adviser filter
+    if (serviceAdvisor?.trim()) {
+      filter.serviceAdvisor = serviceAdvisor.trim();
     }
 
     // Keep branch, date and search filters for section summaries
@@ -808,6 +834,8 @@ const getDashboard = async (req, res) => {
     res.status(200).json({
       message: "Dashboard data fetched successfully",
 
+      serviceAdvisors, // NEW
+
       summary: {
         totalRecords: summary.totalRecords,
         totalLabourEstimate: summary.totalLabourEstimate,
@@ -846,6 +874,299 @@ const getDashboard = async (req, res) => {
   }
 };
 
+
+
+const getOverallStatus = async (req, res) => {
+  try {
+    const { branchIds } = req.query;
+
+    // 1. Determine branches the user is allowed to access
+    let allowedBranchIds = [];
+
+    if (req.user.role === "admin") {
+      const allBranches = await Branch.find({
+        isActive: true,
+      }).select("_id name code");
+
+      allowedBranchIds = allBranches.map((b) => String(b._id));
+    } else {
+      allowedBranchIds = getAssignedBranchIds(req.user);
+
+      if (!allowedBranchIds.length) {
+        return res.status(403).json({
+          message: "User does not have any assigned branches",
+        });
+      }
+
+      const assignedBranches = await Branch.find({
+        _id: { $in: allowedBranchIds },
+        isActive: true,
+      }).select("_id name code");
+
+      allowedBranchIds = assignedBranches.map((b) => String(b._id));
+    }
+
+    // 2. Apply optional multi-branch selection
+    let selectedBranchIds = allowedBranchIds;
+
+    if (branchIds !== undefined) {
+      const requestedIds = String(branchIds)
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
+
+      const invalidIds = requestedIds.filter(
+        (id) => !mongoose.Types.ObjectId.isValid(id)
+      );
+
+      if (invalidIds.length) {
+        return res.status(400).json({
+          message: "Invalid branch ID",
+        });
+      }
+
+      const unauthorizedIds = requestedIds.filter(
+        (id) => !allowedBranchIds.includes(id)
+      );
+
+      if (unauthorizedIds.length) {
+        return res.status(403).json({
+          message:
+            "You do not have access to one or more selected branches",
+        });
+      }
+
+      selectedBranchIds = [...new Set(requestedIds)];
+    }
+
+    const selectedBranches = await Branch.find({
+      _id: {
+        $in: selectedBranchIds.map(
+          (id) => new mongoose.Types.ObjectId(id)
+        ),
+      },
+      isActive: true,
+    })
+      .select("_id name code")
+      .sort({ name: 1 })
+      .lean();
+
+    // 3. Find the Billed status ID
+    const billedStatus = await Status.findOne({
+      name: /^Billed$/i,
+    }).select("_id");
+
+    const billedStatusId = billedStatus?._id;
+
+    // Exclude Billed from the displayed statuses
+    const statuses = await Status.find({
+      isActive: true,
+      name: { $not: /^Billed$/i },
+    })
+      .select("_id name section")
+      .sort({ section: 1, name: 1 })
+      .lean();
+
+    // Reusable filter to exclude Billed records
+    const nonBilledFilter = billedStatusId
+      ? { presentStatus: { $ne: billedStatusId } }
+      : {};
+
+    // 4. Count non-billed records by branch and status
+    const counts = await FormRecord.aggregate([
+      {
+        $match: {
+          branch: {
+            $in: selectedBranches.map((b) => b._id),
+          },
+          ...nonBilledFilter,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            branch: "$branch",
+            status: "$presentStatus",
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const countMap = new Map();
+
+    counts.forEach((item) => {
+      const key = `${item._id.branch}_${item._id.status}`;
+      countMap.set(key, item.count);
+    });
+
+    const statusRows = selectedBranches.map((branch) => {
+      const statusCounts = {};
+
+      statuses.forEach((status) => {
+        const key = `${branch._id}_${status._id}`;
+        statusCounts[String(status._id)] = countMap.get(key) || 0;
+      });
+
+      const total = Object.values(statusCounts).reduce(
+        (sum, count) => sum + count,
+        0
+      );
+
+      return {
+        branchId: String(branch._id),
+        branchName: branch.name,
+        branchCode: branch.code,
+        statusCounts,
+        total,
+      };
+    });
+
+    // 5. Calculate current and next month boundaries
+    // Estimates are based on promisedDeliveryDate.
+    const now = new Date();
+
+    const currentMonthStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
+
+    const nextMonthStart = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      1
+    );
+
+    const monthAfterNextStart = new Date(
+      now.getFullYear(),
+      now.getMonth() + 2,
+      1
+    );
+
+    // 6. Calculate non-billed estimates for each branch and month
+    const estimateResults = await FormRecord.aggregate([
+      {
+        $match: {
+          branch: {
+            $in: selectedBranches.map((b) => b._id),
+          },
+          ...nonBilledFilter,
+          promisedDeliveryDate: {
+            $gte: currentMonthStart,
+            $lt: monthAfterNextStart,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            branch: "$branch",
+            month: {
+              $cond: [
+                { $lt: ["$promisedDeliveryDate", nextMonthStart] },
+                "currentMonth",
+                "nextMonth",
+              ],
+            },
+          },
+          labourEstimate: {
+            $sum: { $ifNull: ["$labourEstimate", 0] },
+          },
+          partsEstimate: {
+            $sum: { $ifNull: ["$partsEstimate", 0] },
+          },
+          recordCount: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const emptyEstimate = () => ({
+      labourEstimate: 0,
+      partsEstimate: 0,
+      recordCount: 0,
+    });
+
+    // Initialize estimates for every selected branch
+    const branchEstimates = {};
+
+    selectedBranches.forEach((branch) => {
+      branchEstimates[String(branch._id)] = {
+        branchId: String(branch._id),
+        branchName: branch.name,
+        branchCode: branch.code,
+        currentMonth: emptyEstimate(),
+        nextMonth: emptyEstimate(),
+      };
+    });
+
+    // Fill estimates
+    estimateResults.forEach((item) => {
+      const branchId = String(item._id.branch);
+      const month = item._id.month;
+
+      if (branchEstimates[branchId]) {
+        branchEstimates[branchId][month] = {
+          labourEstimate: item.labourEstimate,
+          partsEstimate: item.partsEstimate,
+          recordCount: item.recordCount,
+        };
+      }
+    });
+
+    // 7. Calculate grand totals
+    const estimateTotals = {
+      currentMonth: emptyEstimate(),
+      nextMonth: emptyEstimate(),
+    };
+
+    Object.values(branchEstimates).forEach((branch) => {
+      ["currentMonth", "nextMonth"].forEach((month) => {
+        estimateTotals[month].labourEstimate +=
+          branch[month].labourEstimate;
+
+        estimateTotals[month].partsEstimate +=
+          branch[month].partsEstimate;
+
+        estimateTotals[month].recordCount +=
+          branch[month].recordCount;
+      });
+    });
+
+    return res.status(200).json({
+      message: "Overall status fetched successfully",
+      branches: selectedBranches,
+      statuses,
+      rows: statusRows,
+      branchEstimates: Object.values(branchEstimates),
+      estimateTotals,
+
+      // Keep the existing response structure
+      estimates: {
+        currentMonth: {
+          month: currentMonthStart.getMonth() + 1,
+          year: currentMonthStart.getFullYear(),
+          ...estimateTotals.currentMonth,
+        },
+        nextMonth: {
+          month: nextMonthStart.getMonth() + 1,
+          year: nextMonthStart.getFullYear(),
+          ...estimateTotals.nextMonth,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Overall status error:", error);
+
+    return res.status(500).json({
+      message: "Failed to fetch overall status",
+    });
+  }
+};
+
+
+
 module.exports = {
   getDashboard,
+  getOverallStatus,
 };
