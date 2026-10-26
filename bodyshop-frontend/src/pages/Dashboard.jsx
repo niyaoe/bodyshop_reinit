@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { getDashboard } from "../services/dashboardService";
 import api from "../api/axios";
-import "./Dashboard.css";
+
+import "./DashboardTheme.css";
 import FormModal from "../components/FormModal";
 import AdminManagementPanel from "../components/AdminManagementPanel";
 
@@ -12,7 +13,7 @@ function Dashboard() {
   const [branches, setBranches] = useState([]);
 
   const [overallStatusData, setOverallStatusData] = useState(null);
-  
+
 
   const [search, setSearch] = useState("");
   const [branch, setBranch] = useState("");
@@ -148,7 +149,7 @@ function Dashboard() {
 
       setOverallStatusData(response.data);
 
-     
+
     } catch (error) {
       setError(
         error.response?.data?.message ||
@@ -159,7 +160,7 @@ function Dashboard() {
     }
   };
 
-  
+
 
 
 
@@ -282,7 +283,8 @@ function Dashboard() {
 
   return (
     <div
-      className={`bs-dashboard-page ${sidebarCollapsed ? "bs-sidebar-collapsed" : ""}`}
+      className={`bst-theme-page bs-dashboard-page ${sidebarCollapsed ? "bs-sidebar-collapsed" : ""
+        }`}
     >
       <div className="bs-dashboard-workspace">
         <aside
