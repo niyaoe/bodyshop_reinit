@@ -12,8 +12,11 @@ function Dashboard() {
   const [branches, setBranches] = useState([]);
   const [search, setSearch] = useState("");
   const [branch, setBranch] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  // const [fromDate, setFromDate] = useState("");
+  // const [toDate, setToDate] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [dateFilterType, setDateFilterType] = useState("promise");
   const [page, setPage] = useState(1);
   const limit = 20;
   const [loading, setLoading] = useState(false);
@@ -98,8 +101,12 @@ function Dashboard() {
 
       if (search.trim()) params.search = search.trim();
       if (branch) params.branch = branch;
-      if (fromDate) params.fromDate = fromDate;
-      if (toDate) params.toDate = toDate;
+      // if (fromDate) params.fromDate = fromDate;
+      // if (toDate) params.toDate = toDate;
+      if (selectedMonth && selectedYear) {
+        params.promiseMonth = `${selectedMonth}-${selectedYear.slice(-2)}`;
+        params.dateFilterType = dateFilterType;
+      }
       if (jobType) params.jobType = jobType;
       if (segment) params.segment = segment;
       if (insuranceStatus) params.insuranceStatus = insuranceStatus;
@@ -126,7 +133,7 @@ function Dashboard() {
 
   useEffect(() => {
     fetchDashboard(activeSection, page);
-  }, [activeSection, page, jobType, segment, insuranceStatus]);
+  }, [activeSection, page, jobType, segment, insuranceStatus,]);
 
   useEffect(() => {
     const loadBranches = async () => {
@@ -169,9 +176,11 @@ function Dashboard() {
 
   const handleClearFilters = () => {
     setSearch("");
-    setBranch("");
-    setFromDate("");
-    setToDate("");
+    // setBranch("");
+    // setFromDate("");
+    // setToDate("");
+    setPromiseMonth("");
+    setDateFilterType("promise");
     setPage(1);
     setJobType("");
     setSegment("");
@@ -367,22 +376,68 @@ function Dashboard() {
                 </div>
 
                 <div className="bs-dashboard-filter-field">
-                  <label className="bs-dashboard-filter-label">From Date</label>
-                  <input
-                    type="date"
-                    className="bs-dashboard-filter-input"
-                    value={fromDate}
-                    onChange={(e) => setFromDate(e.target.value)}
-                  />
+                  <label className="bs-dashboard-filter-label">
+                    Filter Month By
+                  </label>
+
+                  <div className="bs-date-filter-switch">
+                    <button
+                      type="button"
+                      className={dateFilterType === "promise" ? "active" : ""}
+                      onClick={() => setDateFilterType("promise")}
+                    >
+                      Promise Month
+                    </button>
+
+                    <button
+                      type="button"
+                      className={dateFilterType === "ro" ? "active" : ""}
+                      onClick={() => setDateFilterType("ro")}
+                    >
+                      RO Month
+                    </button>
+                  </div>
                 </div>
+
                 <div className="bs-dashboard-filter-field">
-                  <label className="bs-dashboard-filter-label">To Date</label>
-                  <input
-                    type="date"
-                    className="bs-dashboard-filter-input"
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
-                  />
+                  <label className="bs-dashboard-filter-label">
+                    Promise Delivery Month
+                  </label>
+
+                  <div className="bs-month-year-selectors">
+                    <select
+                      className="bs-dashboard-filter-input"
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                    >
+                      <option value="">Select Month</option>
+                      <option value="01">January</option>
+                      <option value="02">February</option>
+                      <option value="03">March</option>
+                      <option value="04">April</option>
+                      <option value="05">May</option>
+                      <option value="06">June</option>
+                      <option value="07">July</option>
+                      <option value="08">August</option>
+                      <option value="09">September</option>
+                      <option value="10">October</option>
+                      <option value="11">November</option>
+                      <option value="12">December</option>
+                    </select>
+
+                    <select
+                      className="bs-dashboard-filter-input"
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(e.target.value)}
+                    >
+                      <option value="">Select Year</option>
+                      {Array.from({ length: 11 }, (_, i) => 2026 + i).map((year) => (
+                        <option key={year} value={String(year)}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div className="bs-dashboard-filter-actions">
                   <button

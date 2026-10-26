@@ -156,28 +156,28 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
   }, [isOpen, user?.role]);
 
   useEffect(() => {
-  if (!isOpen || !form.branch) {
-    setServiceAdvisors([]);
-    return;
-  }
-
-  const fetchServiceAdvisors = async () => {
-    try {
-      const response = await api.get("/service-advisors", {
-        params: { branch: form.branch },
-      });
-
-      setServiceAdvisors(
-        response.data.serviceAdvisors || []
-      );
-    } catch (error) {
-      console.error("Failed to load service advisors:", error);
+    if (!isOpen || !form.branch) {
       setServiceAdvisors([]);
+      return;
     }
-  };
 
-  fetchServiceAdvisors();
-}, [isOpen, form.branch]);
+    const fetchServiceAdvisors = async () => {
+      try {
+        const response = await api.get("/service-advisors", {
+          params: { branch: form.branch },
+        });
+
+        setServiceAdvisors(
+          response.data.serviceAdvisors || []
+        );
+      } catch (error) {
+        console.error("Failed to load service advisors:", error);
+        setServiceAdvisors([]);
+      }
+    };
+
+    fetchServiceAdvisors();
+  }, [isOpen, form.branch]);
 
   /*
 
@@ -309,9 +309,9 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
             : Number(form.partsBillAmount),
       };
 
-     
 
-      
+
+
 
       if (isEditMode) {
         await updateFormRecord(editRecord._id, payload);
@@ -381,11 +381,11 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
   return (
     <div
       className="bs-form-modal-overlay"
-      // onMouseDown={(e) => {
-      //   if (e.target.classList.contains("bs-form-modal-overlay")) {
-      //     onClose();
-      //   }
-      // }}
+    // onMouseDown={(e) => {
+    //   if (e.target.classList.contains("bs-form-modal-overlay")) {
+    //     onClose();
+    //   }
+    // }}
     >
       <div className="bs-form-modal">
         {/* HEADER */}
@@ -417,7 +417,7 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
               type="button"
               className="bs-form-modal-close"
               onClick={backToRecord}
-              
+
             >
               ×
             </button>
@@ -758,8 +758,8 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                     onChange={handleChange}
                   >
                     <option value="">Select</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
+                    <option value="Elig">Eligible</option>
+                    <option value="Not Elig">Not Eligible</option>
                   </select>
                 </div>
 
@@ -772,8 +772,8 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                     onChange={handleChange}
                   >
                     <option value="">Select</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
+                    <option value="Elig">Eligible</option>
+                    <option value="Not Elig">Not Eligible</option>
                   </select>
                 </div>
 
