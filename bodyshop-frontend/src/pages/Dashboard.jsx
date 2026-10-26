@@ -10,6 +10,10 @@ function Dashboard() {
   const [activeSection, setActiveSection] = useState("open");
   const [dashboardData, setDashboardData] = useState(null);
   const [branches, setBranches] = useState([]);
+
+  const [overallStatusData, setOverallStatusData] = useState(null);
+  
+
   const [search, setSearch] = useState("");
   const [branch, setBranch] = useState("");
   // const [fromDate, setFromDate] = useState("");
@@ -38,6 +42,7 @@ function Dashboard() {
   const [jobType, setJobType] = useState("");
   const [segment, setSegment] = useState("");
   const [insuranceStatus, setInsuranceStatus] = useState("");
+  const [serviceAdvisor, setServiceAdvisor] = useState("");
 
   const handleSummaryTileClick = (tile, statusId = null) => {
     setSelectedSummaryTile(tile);
@@ -110,6 +115,9 @@ function Dashboard() {
       if (jobType) params.jobType = jobType;
       if (segment) params.segment = segment;
       if (insuranceStatus) params.insuranceStatus = insuranceStatus;
+      if (serviceAdvisor) {
+        params.serviceAdvisor = serviceAdvisor;
+      }
 
       if (summaryTile) {
         params.summaryTile = summaryTile;
@@ -131,9 +139,45 @@ function Dashboard() {
   };
 
 
+  const fetchOverallStatus = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await api.get("/dashboard/overall-status");
+
+      setOverallStatusData(response.data);
+
+     
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+        "Failed to load overall status"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
+
+
+
   useEffect(() => {
+    if (activeSection === "overallStatus") {
+      fetchOverallStatus();
+      return;
+    }
+
     fetchDashboard(activeSection, page);
-  }, [activeSection, page, jobType, segment, insuranceStatus,]);
+  }, [
+    activeSection,
+    page,
+    jobType,
+    segment,
+    insuranceStatus,
+    serviceAdvisor, // NEW
+  ]);
 
   useEffect(() => {
     const loadBranches = async () => {
@@ -174,20 +218,50 @@ function Dashboard() {
     fetchDashboard(activeSection, 1);
   };
 
-  const handleClearFilters = () => {
+
+  const handleClearFilters = async () => {
+    // Reset all filter states
     setSearch("");
-    // setBranch("");
-    // setFromDate("");
-    // setToDate("");
-    setPromiseMonth("");
+    setBranch("");
+    setSelectedMonth("");
+    setSelectedYear("");
     setDateFilterType("promise");
-    setPage(1);
     setJobType("");
     setSegment("");
-    fetchDashboard(activeSection, 1);
     setInsuranceStatus("");
+    setServiceAdvisor("");
 
+    // Reset summary tile and status selection
+    setSelectedSummaryTile(null);
+    setSelectedStatusId(null);
+
+    // Reset pagination
+    setPage(1);
+
+    // Fetch immediately with cleared filters.
+    // Do not depend on state updates having completed.
+    try {
+      setLoading(true);
+      setError("");
+
+      const params = {
+        section: activeSection,
+        page: 1,
+        limit,
+      };
+
+      const data = await getDashboard(params);
+      setDashboardData(data);
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+        "Failed to load dashboard data"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -203,6 +277,7 @@ function Dashboard() {
     { id: "open", label: "Open", icon: "◷" },
     { id: "billed", label: "Billed", icon: "✓" },
     { id: "legalLoss", label: "Legal / Loss", icon: "⚖" },
+    { id: "overallStatus", label: "Overall Status", icon: "▦" },
   ];
 
   return (
@@ -290,17 +365,18 @@ function Dashboard() {
               </span>
             </div>
             <div className="bs-dashboard-toolbar-actions">
-              <button
-                type="button"
-                className={`bs-dashboard-utility-button ${filtersVisible ? "is-active" : ""}`}
-                onClick={() => setFiltersVisible((value) => !value)}
-                aria-expanded={filtersVisible}
-              >
-                <span aria-hidden="true">☷</span> Filters{" "}
-                <span className="bs-dashboard-chevron">
-                  {filtersVisible ? "−" : "+"}
-                </span>
-              </button>
+              {activeSection !== "overallStatus" && (
+                <button
+                  type="button"
+                  className={`bs-dashboard-utility-button ${filtersVisible ? "is-active" : ""}`}
+                  onClick={() => setFiltersVisible((value) => !value)}
+                  aria-expanded={filtersVisible}
+                >
+                  <span aria-hidden="true">☷</span> Filters{" "}
+                  <span className="bs-dashboard-chevron">
+                    {filtersVisible ? "−" : "+"}
+                  </span>
+                </button>)}
               <button
                 type="button"
                 className={`bs-dashboard-utility-button ${summaryVisible ? "is-active" : ""}`}
@@ -386,7 +462,7 @@ function Dashboard() {
                       className={dateFilterType === "promise" ? "active" : ""}
                       onClick={() => setDateFilterType("promise")}
                     >
-                      Promise Month
+                      Promise
                     </button>
 
                     <button
@@ -394,14 +470,14 @@ function Dashboard() {
                       className={dateFilterType === "ro" ? "active" : ""}
                       onClick={() => setDateFilterType("ro")}
                     >
-                      RO Month
+                      RO
                     </button>
                   </div>
                 </div>
 
                 <div className="bs-dashboard-filter-field">
                   <label className="bs-dashboard-filter-label">
-                    Promise Delivery Month
+                    Select Month And Year
                   </label>
 
                   <div className="bs-month-year-selectors">
@@ -457,200 +533,203 @@ function Dashboard() {
             </div>
           </section>
 
-          {!loading && !error && dashboardData && (
-            <section
-              className={`bs-dashboard-collapsible bs-dashboard-summary-collapse ${summaryVisible ? "is-open" : ""}`}
-              aria-hidden={!summaryVisible}
-            >
-              <div className="bs-dashboard-collapsible-inner">
-                <section className="bs-dashboard-summary">
-                  {activeSection === "open" ? (
-                    <>
-                      <button
-                        type="button"
-                        className="bs-dashboard-card bs-dashboard-summary-tile"
-                        onClick={() => handleSummaryTileClick("open")}
-                        title="View all open records"
-                      >
-                        <span className="bs-dashboard-card-label">
-                          Total Open Records
-                        </span>
-                        <strong className="bs-dashboard-card-value">
-                          {(
-                            dashboardData.openStatusSummary?.totalOpenRecords ??
-                            0
-                          ).toLocaleString("en-IN")}
-                        </strong>
-                      </button>
+          {activeSection !== "overallStatus" &&
+            !loading &&
+            !error &&
+            dashboardData && (
+              <section
+                className={`bs-dashboard-collapsible bs-dashboard-summary-collapse ${summaryVisible ? "is-open" : ""}`}
+                aria-hidden={!summaryVisible}
+              >
+                <div className="bs-dashboard-collapsible-inner">
+                  <section className="bs-dashboard-summary">
+                    {activeSection === "open" ? (
+                      <>
+                        <button
+                          type="button"
+                          className="bs-dashboard-card bs-dashboard-summary-tile"
+                          onClick={() => handleSummaryTileClick("open")}
+                          title="View all open records"
+                        >
+                          <span className="bs-dashboard-card-label">
+                            Total Open Records
+                          </span>
+                          <strong className="bs-dashboard-card-value">
+                            {(
+                              dashboardData.openStatusSummary?.totalOpenRecords ??
+                              0
+                            ).toLocaleString("en-IN")}
+                          </strong>
+                        </button>
 
-                      <button
-                        type="button"
-                        className="bs-dashboard-card bs-dashboard-summary-tile"
-                        onClick={() => handleSummaryTileClick("openLabourEstimate")}
-                        title="View records with labour estimates"
-                      >
-                        <span className="bs-dashboard-card-label">
-                          Total Labour Estimate
-                        </span>
-                        <strong className="bs-dashboard-card-value">
-                          ₹
-                          {(
-                            dashboardData.openStatusSummary
-                              ?.totalLabourEstimate ?? 0
-                          ).toLocaleString("en-IN")}
-                        </strong>
-                      </button>
+                        <button
+                          type="button"
+                          className="bs-dashboard-card bs-dashboard-summary-tile"
+                          onClick={() => handleSummaryTileClick("openLabourEstimate")}
+                          title="View records with labour estimates"
+                        >
+                          <span className="bs-dashboard-card-label">
+                            Total Labour Estimate
+                          </span>
+                          <strong className="bs-dashboard-card-value">
+                            ₹
+                            {(
+                              dashboardData.openStatusSummary
+                                ?.totalLabourEstimate ?? 0
+                            ).toLocaleString("en-IN")}
+                          </strong>
+                        </button>
 
-                      <button
-                        type="button"
-                        className="bs-dashboard-card bs-dashboard-summary-tile"
-                        onClick={() => handleSummaryTileClick("openPartsEstimate")}
-                        title="View records with parts estimates"
-                      >
-                        <span className="bs-dashboard-card-label">
-                          Total Parts Estimate
-                        </span>
-                        <strong className="bs-dashboard-card-value">
-                          ₹
-                          {(
-                            dashboardData.openStatusSummary
-                              ?.totalPartsEstimate ?? 0
-                          ).toLocaleString("en-IN")}
-                        </strong>
-                      </button>
+                        <button
+                          type="button"
+                          className="bs-dashboard-card bs-dashboard-summary-tile"
+                          onClick={() => handleSummaryTileClick("openPartsEstimate")}
+                          title="View records with parts estimates"
+                        >
+                          <span className="bs-dashboard-card-label">
+                            Total Parts Estimate
+                          </span>
+                          <strong className="bs-dashboard-card-value">
+                            ₹
+                            {(
+                              dashboardData.openStatusSummary
+                                ?.totalPartsEstimate ?? 0
+                            ).toLocaleString("en-IN")}
+                          </strong>
+                        </button>
 
-                      {(dashboardData.openStatusSummary?.statuses ?? []).map(
-                        (status) => (
-                          <button
-                            type="button"
-                            className="bs-dashboard-card bs-dashboard-summary-tile"
-                            key={status.id}
-                            onClick={() => handleSummaryTileClick("status", status.id)}
-                            title={`View ${status.name} records`}
-                          >
-                            <span className="bs-dashboard-card-label">
-                              {status.name}
-                            </span>
-                            <strong className="bs-dashboard-card-value">
-                              {status.count.toLocaleString("en-IN")}
-                            </strong>
-                          </button>
-                        ),
-                      )}
-                    </>
-                  ) : activeSection === "billed" ? (
-                    <>
-                      <button
-                        type="button"
-                        className="bs-dashboard-card bs-dashboard-summary-tile"
-                        onClick={() => handleSummaryTileClick("billed")}
-                        title="View billed records"
-                      >
-                        <span className="bs-dashboard-card-label">
-                          Total Billed Records
-                        </span>
-                        <strong className="bs-dashboard-card-value">
-                          {(
-                            dashboardData.billedStatusSummary?.totalBilledRecords ?? 0
-                          ).toLocaleString("en-IN")}
-                        </strong>
-                      </button>
+                        {(dashboardData.openStatusSummary?.statuses ?? []).map(
+                          (status) => (
+                            <button
+                              type="button"
+                              className="bs-dashboard-card bs-dashboard-summary-tile"
+                              key={status.id}
+                              onClick={() => handleSummaryTileClick("status", status.id)}
+                              title={`View ${status.name} records`}
+                            >
+                              <span className="bs-dashboard-card-label">
+                                {status.name}
+                              </span>
+                              <strong className="bs-dashboard-card-value">
+                                {status.count.toLocaleString("en-IN")}
+                              </strong>
+                            </button>
+                          ),
+                        )}
+                      </>
+                    ) : activeSection === "billed" ? (
+                      <>
+                        <button
+                          type="button"
+                          className="bs-dashboard-card bs-dashboard-summary-tile"
+                          onClick={() => handleSummaryTileClick("billed")}
+                          title="View billed records"
+                        >
+                          <span className="bs-dashboard-card-label">
+                            Total Billed Records
+                          </span>
+                          <strong className="bs-dashboard-card-value">
+                            {(
+                              dashboardData.billedStatusSummary?.totalBilledRecords ?? 0
+                            ).toLocaleString("en-IN")}
+                          </strong>
+                        </button>
 
-                      <button
-                        type="button"
-                        className="bs-dashboard-card bs-dashboard-summary-tile"
-                        onClick={() => handleSummaryTileClick("billedLabourBill")}
-                        title="View records with labour bill amounts"
-                      >
-                        <span className="bs-dashboard-card-label">
-                          Total Labour Bill
-                        </span>
-                        <strong className="bs-dashboard-card-value">
-                          ₹
-                          {(
-                            dashboardData.billedStatusSummary?.totalLabourBill ?? 0
-                          ).toLocaleString("en-IN")}
-                        </strong>
-                      </button>
+                        <button
+                          type="button"
+                          className="bs-dashboard-card bs-dashboard-summary-tile"
+                          onClick={() => handleSummaryTileClick("billedLabourBill")}
+                          title="View records with labour bill amounts"
+                        >
+                          <span className="bs-dashboard-card-label">
+                            Total Labour Bill
+                          </span>
+                          <strong className="bs-dashboard-card-value">
+                            ₹
+                            {(
+                              dashboardData.billedStatusSummary?.totalLabourBill ?? 0
+                            ).toLocaleString("en-IN")}
+                          </strong>
+                        </button>
 
-                      <button
-                        type="button"
-                        className="bs-dashboard-card bs-dashboard-summary-tile"
-                        onClick={() => handleSummaryTileClick("billedPartsBill")}
-                        title="View records with parts bill amounts"
-                      >
-                        <span className="bs-dashboard-card-label">
-                          Total Parts Bill
-                        </span>
-                        <strong className="bs-dashboard-card-value">
-                          ₹
-                          {(
-                            dashboardData.billedStatusSummary?.totalPartsBill ?? 0
-                          ).toLocaleString("en-IN")}
-                        </strong>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        className="bs-dashboard-card bs-dashboard-summary-tile"
-                        onClick={() => handleSummaryTileClick("legalLoss")}
-                        title="View legal/loss records"
-                      >
-                        <span className="bs-dashboard-card-label">
-                          Total Legal / Loss Records
-                        </span>
-                        <strong className="bs-dashboard-card-value">
-                          {(
-                            dashboardData.legalLossSummary?.totalLegalLossRecords ?? 0
-                          ).toLocaleString("en-IN")}
-                        </strong>
-                      </button>
+                        <button
+                          type="button"
+                          className="bs-dashboard-card bs-dashboard-summary-tile"
+                          onClick={() => handleSummaryTileClick("billedPartsBill")}
+                          title="View records with parts bill amounts"
+                        >
+                          <span className="bs-dashboard-card-label">
+                            Total Parts Bill
+                          </span>
+                          <strong className="bs-dashboard-card-value">
+                            ₹
+                            {(
+                              dashboardData.billedStatusSummary?.totalPartsBill ?? 0
+                            ).toLocaleString("en-IN")}
+                          </strong>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className="bs-dashboard-card bs-dashboard-summary-tile"
+                          onClick={() => handleSummaryTileClick("legalLoss")}
+                          title="View legal/loss records"
+                        >
+                          <span className="bs-dashboard-card-label">
+                            Total Legal / Loss Records
+                          </span>
+                          <strong className="bs-dashboard-card-value">
+                            {(
+                              dashboardData.legalLossSummary?.totalLegalLossRecords ?? 0
+                            ).toLocaleString("en-IN")}
+                          </strong>
+                        </button>
 
-                      <button
-                        type="button"
-                        className="bs-dashboard-card bs-dashboard-summary-tile"
-                        onClick={() =>
-                          handleSummaryTileClick("legalLossLabourEstimate")
-                        }
-                        title="View legal/loss records with labour estimates"
-                      >
-                        <span className="bs-dashboard-card-label">
-                          Total Labour Estimate
-                        </span>
-                        <strong className="bs-dashboard-card-value">
-                          ₹
-                          {(
-                            dashboardData.legalLossSummary?.totalLabourEstimate ?? 0
-                          ).toLocaleString("en-IN")}
-                        </strong>
-                      </button>
+                        <button
+                          type="button"
+                          className="bs-dashboard-card bs-dashboard-summary-tile"
+                          onClick={() =>
+                            handleSummaryTileClick("legalLossLabourEstimate")
+                          }
+                          title="View legal/loss records with labour estimates"
+                        >
+                          <span className="bs-dashboard-card-label">
+                            Total Labour Estimate
+                          </span>
+                          <strong className="bs-dashboard-card-value">
+                            ₹
+                            {(
+                              dashboardData.legalLossSummary?.totalLabourEstimate ?? 0
+                            ).toLocaleString("en-IN")}
+                          </strong>
+                        </button>
 
-                      <button
-                        type="button"
-                        className="bs-dashboard-card bs-dashboard-summary-tile"
-                        onClick={() =>
-                          handleSummaryTileClick("legalLossPartsEstimate")
-                        }
-                        title="View legal/loss records with parts estimates"
-                      >
-                        <span className="bs-dashboard-card-label">
-                          Total Parts Estimate
-                        </span>
-                        <strong className="bs-dashboard-card-value">
-                          ₹
-                          {(
-                            dashboardData.legalLossSummary?.totalPartsEstimate ?? 0
-                          ).toLocaleString("en-IN")}
-                        </strong>
-                      </button>
-                    </>
-                  )}
-                </section>
-              </div>
-            </section>
-          )}
+                        <button
+                          type="button"
+                          className="bs-dashboard-card bs-dashboard-summary-tile"
+                          onClick={() =>
+                            handleSummaryTileClick("legalLossPartsEstimate")
+                          }
+                          title="View legal/loss records with parts estimates"
+                        >
+                          <span className="bs-dashboard-card-label">
+                            Total Parts Estimate
+                          </span>
+                          <strong className="bs-dashboard-card-value">
+                            ₹
+                            {(
+                              dashboardData.legalLossSummary?.totalPartsEstimate ?? 0
+                            ).toLocaleString("en-IN")}
+                          </strong>
+                        </button>
+                      </>
+                    )}
+                  </section>
+                </div>
+              </section>
+            )}
 
           {/* {loading && (
             <div className="bs-dashboard-loading">Loading records...</div>
@@ -658,224 +737,431 @@ function Dashboard() {
 
           {error && <div className="bs-dashboard-error">{error}</div>}
 
-          {!error && dashboardData && (
-            <section className="bs-dashboard-records">
-              <div className="bs-dashboard-table-wrapper">
-                {loading && (
-                  <div className="bs-table-loading-overlay">
-                    <img
-                      src="/loading.png"
-                      alt="Loading..."
-                      className="bs-loading-spinner"
-                    />
-                    {/* <p>Loading records...</p> */}
-                  </div>
-                )}
-                <table className="bs-dashboard-table">
-                  <thead>
-                    <tr>
-                      <th>Sl No</th>
-                      <th>Branch</th>
-                      <th className="bs-sticky-reg">Registration</th>
-                      <th>Yard Entry Date</th>
-                      <th>RO Date</th>
-                      <th>RO</th>
-                      <th>Model</th>
-
-                      <th>
-                        <div className="bs-table-header-filter">
-                          <span>Segment</span>
-                          <select
-                            aria-label="Filter by segment"
-                            value={segment}
-                            onChange={(e) => {
-                              setSegment(e.target.value);
-                              setPage(1);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <option value="">All</option>
-                            <option value="PV">PV</option>
-                            <option value="BEV">BEV</option>
-                            <option value="CV">CV</option>
-                            <option value="LMM">LMM</option>
-                            <option value="3W">3W</option>
-                          </select>
-                        </div>
-                      </th>
-                      <th>
-                        <div className="bs-table-header-filter">
-                          <span>Job</span>
-                          <select
-                            aria-label="Filter by job type"
-                            value={jobType}
-                            onChange={(e) => {
-                              setJobType(e.target.value);
-                              setPage(1);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <option value="">All</option>
-                            <option value="M1">M1</option>
-                            <option value="M2">M2</option>
-                            <option value="M3">M3</option>
-                            <option value="M4">M4</option>
-                          </select>
-                        </div>
-                      </th>
 
 
-                      <th>Status</th>
-                      <th>Customer</th>
-                      <th>Contact No</th>
-                      <th>
-                        <div className="bs-table-header-filter">
-                          <span>Insu Status</span>
-                          <select
-                            aria-label="Filter by insurance status"
-                            value={insuranceStatus}
-                            onChange={(e) => {
-                              setInsuranceStatus(e.target.value);
-                              setPage(1);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <option value="">All</option>
-                            <option value="In-House">In-House</option>
-                            <option value="Out-Side">Out-Side</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Warranty">Warranty</option>
-                          </select>
-                        </div>
-                      </th>
-                      <th>Insu Name</th>
-                      <th>SA</th>
-                      <th>PMS Date</th>
-                      <th>RSA</th>
-                      <th>Shield</th>
-                      <th>WhatsApp</th>
-                      <th>Promise Date</th>
-                      <th>Labour Est</th>
-                      <th>Parts Est</th>
-                      <th>Bill Date</th>
-                      <th>Labour Amt</th>
-                      <th>Parts Amt</th>
-                      <th>Actions</th>
+          {activeSection === "overallStatus" && !error && (
+            <section className="bs-dashboard-records bs-overall-section">
+              {loading && <p>Loading overall status...</p>}
 
-                      {/* <th>Action</th> */}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dashboardData.records?.length > 0 ? (
-                      dashboardData.records.map((record) => (
-                        <tr
-                          key={record._id}
-                          onClick={() => handleEditRecord(record)}
-                          className={
-                            record.isDeliveryOverdue
-                              ? "bs-delivery-overdue-row"
-                              : ""
-                          }
-                          title={
-                            record.isDeliveryOverdue
-                              ? `${record.deliveryDaysOverdue} days past promised delivery date`
-                              : undefined
-                          }
-                        >
-                          <td>{record.slNo}</td>
-                          <td>{record.branch?.name || "-"}</td>
-                          <td className="bs-sticky-reg">{record.regNo}</td>
-                          <td>
-                            {record.yardEntryDate
-                              ? new Date(
-                                record.yardEntryDate,
-                              ).toLocaleDateString()
-                              : "-"}
-                          </td>
-                          <td>
-                            {record.roDate
-                              ? new Date(record.roDate).toLocaleDateString()
-                              : "-"}
-                          </td>
-                          <td className="bs-dashboard-ro-cell">
-                            {record.roNumber}
-                          </td>
-                          <td>{record.model}</td>
-                          <td>{record.subSegmentName || "—"}</td>
-                          <td>{record.jobType || "-"}</td>
-                          <td>
-                            <span className="bs-dashboard-status-pill">
-                              {record.presentStatus?.name || "-"}
-                            </span>
-                          </td>
-                          <td>{record.customerName}</td>
-                          <td>{record.contactNo || "-"}</td>
-                          <td>{record.insuranceStatus || "-"}</td>
-                          <td>{record.insuranceName || "-"}</td>
-                          <td>{record.serviceAdvisor || "-"}</td>
-                          {/* PMS Date */}
-                          <td>
-                            {record.nextPmsDate
-                              ? new Date(
-                                record.nextPmsDate,
-                              ).toLocaleDateString()
-                              : "-"}
-                          </td>
+              {overallStatusData && (() => {
+                const visibleBranches = overallStatusData.branches;
+                const visibleRows = overallStatusData.rows;
 
-                          {/* RSA */}
-                          <td>{record.rsaEligibility || "-"}</td>
+                const branchEstimateMap = new Map(
+                  (overallStatusData.branchEstimates || []).map((item) => [
+                    item.branchId,
+                    item,
+                  ])
+                );
 
-                          {/* Shield */}
-                          <td>{record.shieldEligibility || "-"}</td>
+                const money = (value) =>
+                  `₹${Number(value || 0).toLocaleString("en-IN", {
+                    maximumFractionDigits: 2,
+                  })}`;
 
-                          {/* WhatsApp */}
-                          <td>
-                            {record.whatsappGroupCreationDate
-                              ? new Date(
-                                record.whatsappGroupCreationDate,
-                              ).toLocaleDateString()
-                              : "-"}
-                          </td>
+                const estimateRows = [
+                  {
+                    key: "currentLabour",
+                    label: "Current Month · Labour",
+                    month: "currentMonth",
+                    field: "labourEstimate",
+                  },
+                  {
+                    key: "currentParts",
+                    label: "Current Month · Parts",
+                    month: "currentMonth",
+                    field: "partsEstimate",
+                  },
+                  {
+                    key: "nextLabour",
+                    label: "Next Month · Labour",
+                    month: "nextMonth",
+                    field: "labourEstimate",
+                  },
+                  {
+                    key: "nextParts",
+                    label: "Next Month · Parts",
+                    month: "nextMonth",
+                    field: "partsEstimate",
+                  },
+                ];
 
-                          {/* Promise Date */}
-                          <td>
-                            {record.promisedDeliveryDate
-                              ? new Date(
-                                record.promisedDeliveryDate,
-                              ).toLocaleDateString()
-                              : "-"}
-                          </td>
+                const getEstimate = (branchId, month, field) =>
+                  branchEstimateMap.get(branchId)?.[month]?.[field] || 0;
 
-                          {/* Labour Estimate */}
-                          <td>{record.labourEstimate ?? "-"}</td>
+                const getEstimateTotal = (month, field) =>
+                  visibleBranches.reduce(
+                    (sum, item) =>
+                      sum + getEstimate(item._id, month, field),
+                    0
+                  );
 
-                          {/* Parts Estimate */}
-                          <td>{record.partsEstimate ?? "-"}</td>
+                return (
+                  <>
 
-                          {/* Bill Date */}
-                          <td>
-                            {record.billDate
-                              ? new Date(record.billDate).toLocaleDateString()
-                              : "-"}
-                          </td>
 
-                          {/* Labour Amount */}
-                          <td>{record.labourBillAmount ?? "-"}</td>
+                    <div className="bs-dashboard-table-wrapper bs-overall-table-wrapper">
+                      <table className="bs-dashboard-table bs-overall-table">
+                        <thead>
+                          <tr>
+                            <th className="bs-overall-label-column">
+                              Status / Estimate
+                            </th>
 
-                          {/* Parts Amount */}
-                          <td>{record.partsBillAmount ?? "-"}</td>
-                          <td className="bs-record-actions-cell">
-                            <button
-                              type="button"
-                              className="bs-record-delete-button"
-                              onClick={(event) => handleDeleteRecord(record, event)}
-                              title="Delete record"
+                            {visibleBranches.map((item) => (
+                              <th key={item._id} className="bs-overall-number">
+                                {item.code || item.name}
+                              </th>
+                            ))}
+
+                            <th className="bs-overall-number">Total</th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {overallStatusData.statuses.map((status) => {
+                            const total = visibleRows.reduce(
+                              (sum, row) =>
+                                sum + (row.statusCounts[String(status._id)] || 0),
+                              0
+                            );
+
+                            return (
+                              <tr key={status._id}>
+                                <td>{status.name}</td>
+
+                                {visibleBranches.map((item) => {
+                                  const row = visibleRows.find(
+                                    (entry) => entry.branchId === item._id
+                                  );
+
+                                  return (
+                                    <td key={item._id} className="bs-overall-number">
+                                      {row?.statusCounts[String(status._id)] || 0}
+                                    </td>
+                                  );
+                                })}
+
+                                <td className="bs-overall-number">
+                                  <strong>{total.toLocaleString("en-IN")}</strong>
+                                </td>
+                              </tr>
+                            );
+                          })}
+
+                          <tr className="bs-overall-total-row">
+                            <td><strong>Status Total</strong></td>
+
+                            {visibleBranches.map((item) => {
+                              const row = visibleRows.find(
+                                (entry) => entry.branchId === item._id
+                              );
+
+                              return (
+                                <td key={item._id} className="bs-overall-number">
+                                  <strong>
+                                    {(row?.total || 0).toLocaleString("en-IN")}
+                                  </strong>
+                                </td>
+                              );
+                            })}
+
+                            <td className="bs-overall-number">
+                              <strong>
+                                {visibleRows
+                                  .reduce((sum, row) => sum + row.total, 0)
+                                  .toLocaleString("en-IN")}
+                              </strong>
+                            </td>
+                          </tr>
+
+                          <tr className="bs-overall-estimate-divider">
+                            <td colSpan={visibleBranches.length + 2}>
+                              Monthly Estimates
+                            </td>
+                          </tr>
+
+                          {estimateRows.map((estimate) => (
+                            <tr key={estimate.key} className="bs-overall-estimate-row">
+                              <td>{estimate.label}</td>
+
+                              {visibleBranches.map((item) => (
+                                <td key={item._id} className="bs-overall-number">
+                                  {money(
+                                    getEstimate(
+                                      item._id,
+                                      estimate.month,
+                                      estimate.field
+                                    )
+                                  )}
+                                </td>
+                              ))}
+
+                              <td className="bs-overall-number bs-overall-estimate-total">
+                                <strong>
+                                  {money(
+                                    getEstimateTotal(
+                                      estimate.month,
+                                      estimate.field
+                                    )
+                                  )}
+                                </strong>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                );
+              })()}
+            </section>
+          )}
+
+
+
+          {activeSection !== "overallStatus" &&
+            !error &&
+            dashboardData && (
+              <section className="bs-dashboard-records">
+                <div className="bs-dashboard-table-wrapper">
+                  {loading && (
+                    <div className="bs-table-loading-overlay">
+                      <img
+                        src="/loading.png"
+                        alt="Loading..."
+                        className="bs-loading-spinner"
+                      />
+                      {/* <p>Loading records...</p> */}
+                    </div>
+                  )}
+                  <table className="bs-dashboard-table">
+                    <thead>
+                      <tr>
+                        <th>Sl No</th>
+                        <th>Branch</th>
+                        <th className="bs-sticky-reg">Registration</th>
+                        <th>Yard Entry Date</th>
+                        <th>RO Date</th>
+                        <th>RO</th>
+                        <th>Model</th>
+
+                        <th>
+                          <div className="bs-table-header-filter">
+                            <span>Segment</span>
+                            <select
+                              aria-label="Filter by segment"
+                              value={segment}
+                              onChange={(e) => {
+                                setSegment(e.target.value);
+                                setPage(1);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              Delete
-                            </button>
-                          </td>
+                              <option value="">All</option>
+                              <option value="PV">PV</option>
+                              <option value="BEV">BEV</option>
+                              <option value="CV">CV</option>
+                              <option value="LMM">LMM</option>
+                              <option value="3W">3W</option>
+                            </select>
+                          </div>
+                        </th>
+                        <th>
+                          <div className="bs-table-header-filter">
+                            <span>Job</span>
+                            <select
+                              aria-label="Filter by job type"
+                              value={jobType}
+                              onChange={(e) => {
+                                setJobType(e.target.value);
+                                setPage(1);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <option value="">All</option>
+                              <option value="M1">M1</option>
+                              <option value="M2">M2</option>
+                              <option value="M3">M3</option>
+                              <option value="M4">M4</option>
+                            </select>
+                          </div>
+                        </th>
 
-                          {/* <td>
+
+                        <th>Status</th>
+                        <th>Customer</th>
+                        <th>Contact No</th>
+                        <th>
+                          <div className="bs-table-header-filter">
+                            <span>Insu Status</span>
+                            <select
+                              aria-label="Filter by insurance status"
+                              value={insuranceStatus}
+                              onChange={(e) => {
+                                setInsuranceStatus(e.target.value);
+                                setPage(1);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <option value="">All</option>
+                              <option value="In-House">In-House</option>
+                              <option value="Out-Side">Out-Side</option>
+                              <option value="Cash">Cash</option>
+                              <option value="Warranty">Warranty</option>
+                            </select>
+                          </div>
+                        </th>
+                        <th>Insu Name</th>
+                        <th>
+                          <div className="bs-table-header-filter">
+                            <span>SA</span>
+
+                            <select
+                              aria-label="Filter by service adviser"
+                              value={serviceAdvisor}
+                              onChange={(e) => {
+                                setServiceAdvisor(e.target.value);
+                                setPage(1);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <option value="">All</option>
+
+                              {(dashboardData?.serviceAdvisors || []).map((name) => (
+                                <option key={name} value={name}>
+                                  {name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </th>
+                        <th>PMS Date</th>
+                        <th>RSA</th>
+                        <th>Shield</th>
+                        <th>WhatsApp</th>
+                        <th>Promise Date</th>
+                        <th>Labour Est</th>
+                        <th>Parts Est</th>
+                        <th>Bill Date</th>
+                        <th>Labour Amt</th>
+                        <th>Parts Amt</th>
+                        <th>Actions</th>
+
+                        {/* <th>Action</th> */}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dashboardData.records?.length > 0 ? (
+                        dashboardData.records.map((record) => (
+                          <tr
+                            key={record._id}
+                            onClick={() => handleEditRecord(record)}
+                            className={
+                              record.isDeliveryOverdue
+                                ? "bs-delivery-overdue-row"
+                                : ""
+                            }
+                            title={
+                              record.isDeliveryOverdue
+                                ? `${record.deliveryDaysOverdue} days past promised delivery date`
+                                : undefined
+                            }
+                          >
+                            <td>{record.slNo}</td>
+                            <td>{record.branch?.name || "-"}</td>
+                            <td className="bs-sticky-reg">{record.regNo}</td>
+                            <td>
+                              {record.yardEntryDate
+                                ? new Date(
+                                  record.yardEntryDate,
+                                ).toLocaleDateString()
+                                : "-"}
+                            </td>
+                            <td>
+                              {record.roDate
+                                ? new Date(record.roDate).toLocaleDateString()
+                                : "-"}
+                            </td>
+                            <td className="bs-dashboard-ro-cell">
+                              {record.roNumber}
+                            </td>
+                            <td>{record.model}</td>
+                            <td>{record.subSegmentName || "—"}</td>
+                            <td>{record.jobType || "-"}</td>
+                            <td>
+                              <span className="bs-dashboard-status-pill">
+                                {record.presentStatus?.name || "-"}
+                              </span>
+                            </td>
+                            <td>{record.customerName}</td>
+                            <td>{record.contactNo || "-"}</td>
+                            <td>{record.insuranceStatus || "-"}</td>
+                            <td>{record.insuranceName || "-"}</td>
+                            <td>{record.serviceAdvisor || "-"}</td>
+                            {/* PMS Date */}
+                            <td>
+                              {record.nextPmsDate
+                                ? new Date(
+                                  record.nextPmsDate,
+                                ).toLocaleDateString()
+                                : "-"}
+                            </td>
+
+                            {/* RSA */}
+                            <td>{record.rsaEligibility || "-"}</td>
+
+                            {/* Shield */}
+                            <td>{record.shieldEligibility || "-"}</td>
+
+                            {/* WhatsApp */}
+                            <td>
+                              {record.whatsappGroupCreationDate
+                                ? new Date(
+                                  record.whatsappGroupCreationDate,
+                                ).toLocaleDateString()
+                                : "-"}
+                            </td>
+
+                            {/* Promise Date */}
+                            <td>
+                              {record.promisedDeliveryDate
+                                ? new Date(
+                                  record.promisedDeliveryDate,
+                                ).toLocaleDateString()
+                                : "-"}
+                            </td>
+
+                            {/* Labour Estimate */}
+                            <td>{record.labourEstimate ?? "-"}</td>
+
+                            {/* Parts Estimate */}
+                            <td>{record.partsEstimate ?? "-"}</td>
+
+                            {/* Bill Date */}
+                            <td>
+                              {record.billDate
+                                ? new Date(record.billDate).toLocaleDateString()
+                                : "-"}
+                            </td>
+
+                            {/* Labour Amount */}
+                            <td>{record.labourBillAmount ?? "-"}</td>
+
+                            {/* Parts Amount */}
+                            <td>{record.partsBillAmount ?? "-"}</td>
+                            <td className="bs-record-actions-cell">
+                              <button
+                                type="button"
+                                className="bs-record-delete-button"
+                                onClick={(event) => handleDeleteRecord(record, event)}
+                                title="Delete record"
+                              >
+                                Delete
+                              </button>
+                            </td>
+
+                            {/* <td>
                             <button
                               className="bs-dashboard-edit-button"
                               onClick={() => handleEditRecord(record)}
@@ -883,43 +1169,43 @@ function Dashboard() {
                               Edit
                             </button>
                           </td> */}
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="24" className="bs-dashboard-empty">
+                            No records found
+                          </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="24" className="bs-dashboard-empty">
-                          No records found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="bs-dashboard-pagination">
-                <span className="bs-dashboard-pagination-info">
-                  Page <strong>{currentPage}</strong> of{" "}
-                  <strong>{totalPages}</strong>
-                </span>
-                <div className="bs-dashboard-pagination-controls">
-                  <button
-                    className="bs-dashboard-page-button"
-                    disabled={currentPage <= 1}
-                    onClick={() => setPage(currentPage - 1)}
-                  >
-                    ← Previous
-                  </button>
-                  <button
-                    className="bs-dashboard-page-button"
-                    disabled={currentPage >= totalPages}
-                    onClick={() => setPage(currentPage + 1)}
-                  >
-                    Next →
-                  </button>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
-            </section>
-          )}
+
+                <div className="bs-dashboard-pagination">
+                  <span className="bs-dashboard-pagination-info">
+                    Page <strong>{currentPage}</strong> of{" "}
+                    <strong>{totalPages}</strong>
+                  </span>
+                  <div className="bs-dashboard-pagination-controls">
+                    <button
+                      className="bs-dashboard-page-button"
+                      disabled={currentPage <= 1}
+                      onClick={() => setPage(currentPage - 1)}
+                    >
+                      ← Previous
+                    </button>
+                    <button
+                      className="bs-dashboard-page-button"
+                      disabled={currentPage >= totalPages}
+                      onClick={() => setPage(currentPage + 1)}
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              </section>
+            )}
         </main>
       </div>
       {user?.role === "admin" && (

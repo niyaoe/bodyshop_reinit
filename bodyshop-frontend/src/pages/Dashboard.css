@@ -1302,3 +1302,94 @@
   color: #fff;
   border-color: #7964f5;
 }
+
+
+
+.bs-overall-branch-filters {
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--bs-border, #dfe3e8);
+  border-radius: 10px;
+}
+
+.bs-overall-branch-filters h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+
+.bs-overall-branch-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+
+.bs-overall-branch-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.bs-overall-table-wrapper {
+  overflow: auto;
+  max-height: 65vh;
+}
+
+.bs-overall-table {
+  min-width: max-content;
+  width: 100%;
+}
+
+.bs-overall-table th,
+.bs-overall-table td {
+  padding: 10px 14px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.bs-overall-table th:first-child,
+.bs-overall-table td:first-child {
+  position: sticky;
+  left: 0;
+  text-align: left;
+  z-index: 1;
+  background: var(--bs-surface, #fff);
+}
+
+.bs-overall-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.bs-overall-table thead th:first-child {
+  z-index: 3;
+}
+
+.bs-overall-table .bs-overall-total-row td {
+  font-weight: 700;
+  border-top: 2px solid var(--bs-border, #cbd5e1);
+}
+
+.bs-overall-estimates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.bs-overall-estimates p {
+  margin: 10px 0;
+}
+
+@media (max-width: 700px) {
+  .bs-overall-estimates {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+
+
