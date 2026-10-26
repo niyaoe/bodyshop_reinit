@@ -25,6 +25,8 @@ const getDashboard = async (req, res) => {
     const {
       branch,
       section,
+      promiseMonth,
+      dateFilterType = "promise",
       fromDate,
       toDate,
       search,
@@ -88,17 +90,56 @@ const getDashboard = async (req, res) => {
     // Date filter
     // ----------------------------------
 
-    if (fromDate || toDate) {
-      filter.promisedDeliveryDate = {};
+    // if (fromDate || toDate) {
+    //   filter.promisedDeliveryDate = {};
 
-      if (fromDate) {
-        filter.promisedDeliveryDate.$gte = new Date(`${fromDate}T00:00:00.000Z`);
+    //   if (fromDate) {
+    //     filter.promisedDeliveryDate.$gte = new Date(`${fromDate}T00:00:00.000Z`);
+    //   }
+
+    //   if (toDate) {
+    //     filter.promisedDeliveryDate.$lte = new Date(`${toDate}T23:59:59.999Z`);
+    //   }
+    // }
+
+
+    // Month filter: Promise Delivery Date or RO Date
+
+    if (promiseMonth?.trim()) {
+      const match = /^(\d{2})-(\d{2})$/.exec(promiseMonth.trim());
+
+      if (!match) {
+        return res.status(400).json({
+          message: "Invalid month format. Use MM-YY, e.g. 10-26",
+        });
       }
 
-      if (toDate) {
-        filter.promisedDeliveryDate.$lte = new Date(`${toDate}T23:59:59.999Z`);
+      if (!["promise", "ro"].includes(dateFilterType)) {
+        return res.status(400).json({
+          message: "Invalid date filter type.",
+        });
       }
+
+      const month = Number(match[1]);
+      const year = 2000 + Number(match[2]);
+
+      if (month < 1 || month > 12) {
+        return res.status(400).json({
+          message: "Invalid month. Enter a month from 01 to 12.",
+        });
+      }
+
+      const dateField =
+        dateFilterType === "ro"
+          ? "roDate"
+          : "promisedDeliveryDate";
+
+      filter[dateField] = {
+        $gte: new Date(Date.UTC(year, month - 1, 1)),
+        $lt: new Date(Date.UTC(year, month, 1)),
+      };
     }
+
 
     // ----------------------------------
     // Search
