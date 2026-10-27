@@ -12,7 +12,7 @@ function Dashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [branches, setBranches] = useState([]);
 
-  const [overallStatusData, setOverallStatusData] = useState(null);
+  const [overallStatusData, setOverallStatus] = useState(null);
 
 
   const [search, setSearch] = useState("");
@@ -35,6 +35,12 @@ function Dashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [summaryVisible, setSummaryVisible] = useState(false);
+
+  const [overallSegments, setOverallSegments] = useState([]);
+  const [overallSegmentFilterOpen, setOverallSegmentFilterOpen] =
+    useState(false);
+
+  const availableOverallSegments = ["BEV", "PV", "CV", "LMM", "3W"];
 
   const [selectedSummaryTile, setSelectedSummaryTile] = useState(null);
 
@@ -140,23 +146,22 @@ function Dashboard() {
   };
 
 
-  const fetchOverallStatus = async () => {
+  const fetchOverallStatus = async (segments = overallSegments) => {
     try {
-      setLoading(true);
-      setError("");
+      const params = {};
 
-      const response = await api.get("/dashboard/overall-status");
+      if (segments.length > 0) {
+        params.segments = segments.join(",");
+      }
 
-      setOverallStatusData(response.data);
+      const response = await api.get("/dashboard/overall-status", {
+        params,
+      });
 
-
+      // Keep your existing response-handling code here.
+      setOverallStatus(response.data);
     } catch (error) {
-      setError(
-        error.response?.data?.message ||
-        "Failed to load overall status"
-      );
-    } finally {
-      setLoading(false);
+      console.error("Error fetching Overall Status:", error);
     }
   };
 
@@ -212,6 +217,15 @@ function Dashboard() {
   const handleSectionChange = (section) => {
     setActiveSection(section);
     setPage(1);
+  };
+
+  const handleOverallSegmentChange = (segment) => {
+    const updatedSegments = overallSegments.includes(segment)
+      ? overallSegments.filter((item) => item !== segment)
+      : [...overallSegments, segment];
+
+    setOverallSegments(updatedSegments);
+    fetchOverallStatus(updatedSegments);
   };
 
   const handleApplyFilters = () => {
@@ -804,9 +818,48 @@ function Dashboard() {
 
                 return (
                   <>
+                    <div className="bstd-overall-segment-filter">
+                      <button
+                        type="button"
+                        className="bstd-overall-segment-toggle"
+                        onClick={() =>
+                          setOverallSegmentFilterOpen((previous) => !previous)
+                        }
+                      >
+                        Segment Filter
+                        <span>{overallSegments.length || "All"}</span>
+                        <span>{overallSegmentFilterOpen ? "−" : "+"}</span>
+                      </button>
+
+                      {overallSegmentFilterOpen && (
+                        <div className="bstd-overall-segment-options">
+                          {availableOverallSegments.map((segment) => (
+                            <label key={segment}>
+                              <input
+                                type="checkbox"
+                                checked={overallSegments.includes(segment)}
+                                onChange={() => handleOverallSegmentChange(segment)}
+                              />
+                              {segment}
+                            </label>
+                          ))}
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOverallSegments([]);
+                              fetchOverallStatus([]);
+                            }}
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      )}
+                    </div>
 
 
                     <div className="bs-dashboard-table-wrapper bs-overall-table-wrapper">
+
                       <table className="bs-dashboard-table bs-overall-table">
                         <thead>
                           <tr>
