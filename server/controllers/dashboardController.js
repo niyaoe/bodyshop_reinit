@@ -1111,6 +1111,32 @@ const getOverallStatus = async (req, res) => {
       },
     ]);
 
+    // Calculate total labour and parts estimates across ALL non-billed records.
+    // No promisedDeliveryDate filter is applied.
+    const allRecordsEstimateResults = await FormRecord.aggregate([
+      {
+        $match: {
+          branch: {
+            $in: selectedBranches.map((b) => b._id),
+          },
+          ...nonBilledFilter,
+          ...segmentRecordFilter,
+        },
+      },
+      {
+        $group: {
+          _id: "$branch",
+          labourEstimate: {
+            $sum: { $ifNull: ["$labourEstimate", 0] },
+          },
+          partsEstimate: {
+            $sum: { $ifNull: ["$partsEstimate", 0] },
+          },
+          recordCount: { $sum: 1 },
+        },
+      },
+    ]);
+
     const emptyEstimate = () => ({
       labourEstimate: 0,
       partsEstimate: 0,
@@ -1127,6 +1153,7 @@ const getOverallStatus = async (req, res) => {
         branchCode: branch.code,
         currentMonth: emptyEstimate(),
         nextMonth: emptyEstimate(),
+        allRecords: emptyEstimate(),
       };
     });
 
@@ -1144,22 +1171,38 @@ const getOverallStatus = async (req, res) => {
       }
     });
 
+    // Fill all-records estimates (no date filtering)
+    allRecordsEstimateResults.forEach((item) => {
+      const branchId = String(item._id);
+
+      if (branchEstimates[branchId]) {
+        branchEstimates[branchId].allRecords = {
+          labourEstimate: item.labourEstimate,
+          partsEstimate: item.partsEstimate,
+          recordCount: item.recordCount,
+        };
+      }
+    });
+
+
+
     // 7. Calculate grand totals
     const estimateTotals = {
       currentMonth: emptyEstimate(),
       nextMonth: emptyEstimate(),
+      allRecords: emptyEstimate(),
     };
 
     Object.values(branchEstimates).forEach((branch) => {
-      ["currentMonth", "nextMonth"].forEach((month) => {
-        estimateTotals[month].labourEstimate +=
-          branch[month].labourEstimate;
+      ["currentMonth", "nextMonth", "allRecords"].forEach((period) => {
+        estimateTotals[period].labourEstimate +=
+          branch[period].labourEstimate;
 
-        estimateTotals[month].partsEstimate +=
-          branch[month].partsEstimate;
+        estimateTotals[period].partsEstimate +=
+          branch[period].partsEstimate;
 
-        estimateTotals[month].recordCount +=
-          branch[month].recordCount;
+        estimateTotals[period].recordCount +=
+          branch[period].recordCount;
       });
     });
 
