@@ -807,7 +807,7 @@
 
 .bst-theme-page .bs-overall-table th {
   background: #f1f4fb;
-  color: #52617b;
+  color: #003084;
   text-align: center;
   font-size: 10px;
   font-weight: 800;
@@ -816,7 +816,7 @@
 }
 
 .bst-theme-page .bs-overall-table td {
-  color: #46546c;
+  color: #000000;
   text-align: center;
 }
 

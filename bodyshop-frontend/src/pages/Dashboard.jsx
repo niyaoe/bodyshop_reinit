@@ -409,131 +409,135 @@ function Dashboard() {
             </div>
           </div>
 
-          <section
-            className={`bs-dashboard-collapsible ${filtersVisible ? "is-open" : ""}`}
-            aria-hidden={!filtersVisible}
-          >
-            <div className="bs-dashboard-collapsible-inner">
-              <section className="bs-dashboard-filters">
-                <div className="bs-dashboard-filter-field bs-dashboard-search-field">
-                  <label className="bs-dashboard-filter-label">
-                    Search records
-                  </label>
-                  <input
-                    type="text"
-                    className="bs-dashboard-filter-input"
-                    placeholder="RO number, customer, registration..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleApplyFilters();
-                    }}
-                  />
-                </div>
-
-                <div className="bs-dashboard-filter-field">
-                  <label className="bs-dashboard-filter-label">Branch</label>
-
-                  <select
-                    className="bs-dashboard-filter-input"
-                    value={branch}
-                    onChange={(e) => setBranch(e.target.value)}
-                  >
-                    <option value="">
-                      {user?.role === "admin"
-                        ? "All Branches"
-                        : "All Assigned Branches"}
-                    </option>
-
-                    {branches.map((item) => (
-                      <option key={item._id} value={item._id}>
-                        {item.name} {item.code ? `(${item.code})` : ""}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="bs-dashboard-filter-field">
-                  <label className="bs-dashboard-filter-label">
-                    Filter Month By
-                  </label>
-
-                  <div className="bs-date-filter-switch">
-                    <button
-                      type="button"
-                      className={dateFilterType === "promise" ? "active" : ""}
-                      onClick={() => setDateFilterType("promise")}
-                    >
-                      Promise
-                    </button>
-
-                    <button
-                      type="button"
-                      className={dateFilterType === "ro" ? "active" : ""}
-                      onClick={() => setDateFilterType("ro")}
-                    >
-                      RO
-                    </button>
+          {activeSection !== "overallStatus" && (
+            <section
+              className={`bs-dashboard-collapsible ${filtersVisible ? "is-open" : ""
+                }`}
+              aria-hidden={!filtersVisible}
+            >
+              <div className="bs-dashboard-collapsible-inner">
+                <section className="bs-dashboard-filters">
+                  <div className="bs-dashboard-filter-field bs-dashboard-search-field">
+                    <label className="bs-dashboard-filter-label">
+                      Search records
+                    </label>
+                    <input
+                      type="text"
+                      className="bs-dashboard-filter-input"
+                      placeholder="RO number, customer, registration..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleApplyFilters();
+                      }}
+                    />
                   </div>
-                </div>
 
-                <div className="bs-dashboard-filter-field">
-                  <label className="bs-dashboard-filter-label">
-                    Select Month And Year
-                  </label>
-
-                  <div className="bs-month-year-selectors">
-                    <select
-                      className="bs-dashboard-filter-input"
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(e.target.value)}
-                    >
-                      <option value="">Select Month</option>
-                      <option value="01">January</option>
-                      <option value="02">February</option>
-                      <option value="03">March</option>
-                      <option value="04">April</option>
-                      <option value="05">May</option>
-                      <option value="06">June</option>
-                      <option value="07">July</option>
-                      <option value="08">August</option>
-                      <option value="09">September</option>
-                      <option value="10">October</option>
-                      <option value="11">November</option>
-                      <option value="12">December</option>
-                    </select>
+                  <div className="bs-dashboard-filter-field">
+                    <label className="bs-dashboard-filter-label">Branch</label>
 
                     <select
                       className="bs-dashboard-filter-input"
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(e.target.value)}
+                      value={branch}
+                      onChange={(e) => setBranch(e.target.value)}
                     >
-                      <option value="">Select Year</option>
-                      {Array.from({ length: 11 }, (_, i) => 2026 + i).map((year) => (
-                        <option key={year} value={String(year)}>
-                          {year}
+                      <option value="">
+                        {user?.role === "admin"
+                          ? "All Branches"
+                          : "All Assigned Branches"}
+                      </option>
+
+                      {branches.map((item) => (
+                        <option key={item._id} value={item._id}>
+                          {item.name} {item.code ? `(${item.code})` : ""}
                         </option>
                       ))}
                     </select>
                   </div>
-                </div>
-                <div className="bs-dashboard-filter-actions">
-                  <button
-                    className="bs-dashboard-apply-button"
-                    onClick={handleApplyFilters}
-                  >
-                    Apply filters
-                  </button>
-                  <button
-                    className="bs-dashboard-clear-button"
-                    onClick={handleClearFilters}
-                  >
-                    Clear
-                  </button>
-                </div>
-              </section>
-            </div>
-          </section>
+
+                  <div className="bs-dashboard-filter-field">
+                    <label className="bs-dashboard-filter-label">
+                      Filter Month By
+                    </label>
+
+                    <div className="bs-date-filter-switch">
+                      <button
+                        type="button"
+                        className={dateFilterType === "promise" ? "active" : ""}
+                        onClick={() => setDateFilterType("promise")}
+                      >
+                        Promise
+                      </button>
+
+                      <button
+                        type="button"
+                        className={dateFilterType === "ro" ? "active" : ""}
+                        onClick={() => setDateFilterType("ro")}
+                      >
+                        RO
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bs-dashboard-filter-field">
+                    <label className="bs-dashboard-filter-label">
+                      Select Month And Year
+                    </label>
+
+                    <div className="bs-month-year-selectors">
+                      <select
+                        className="bs-dashboard-filter-input"
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                      >
+                        <option value="">Select Month</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                      </select>
+
+                      <select
+                        className="bs-dashboard-filter-input"
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(e.target.value)}
+                      >
+                        <option value="">Select Year</option>
+                        {Array.from({ length: 11 }, (_, i) => 2026 + i).map((year) => (
+                          <option key={year} value={String(year)}>
+                            {year}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="bs-dashboard-filter-actions">
+                    <button
+                      className="bs-dashboard-apply-button"
+                      onClick={handleApplyFilters}
+                    >
+                      Apply filters
+                    </button>
+                    <button
+                      className="bs-dashboard-clear-button"
+                      onClick={handleClearFilters}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </section>
+              </div>
+            </section>
+          )}
+
 
           {activeSection !== "overallStatus" &&
             !loading &&
