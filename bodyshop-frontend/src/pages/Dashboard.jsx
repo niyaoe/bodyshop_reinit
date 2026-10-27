@@ -14,6 +14,9 @@ function Dashboard() {
 
   const [overallStatusData, setOverallStatus] = useState(null);
 
+  const [overallLoading, setOverallLoading] = useState(false);
+  const [overallError, setOverallError] = useState("");
+
 
   const [search, setSearch] = useState("");
   const [branch, setBranch] = useState("");
@@ -103,7 +106,7 @@ function Dashboard() {
     section = activeSection,
     currentPage = page,
     summaryTile = selectedSummaryTile,
-    statusId = null,
+    statusId = selectedStatusId,
   ) => {
     try {
       setLoading(true);
@@ -148,6 +151,9 @@ function Dashboard() {
 
   const fetchOverallStatus = async (segments = overallSegments) => {
     try {
+      setOverallLoading(true);
+      setOverallError("");
+
       const params = {};
 
       if (segments.length > 0) {
@@ -158,10 +164,14 @@ function Dashboard() {
         params,
       });
 
-      // Keep your existing response-handling code here.
       setOverallStatus(response.data);
     } catch (error) {
-      console.error("Error fetching Overall Status:", error);
+      setOverallError(
+        error.response?.data?.message ||
+        "Failed to load Overall Status"
+      );
+    } finally {
+      setOverallLoading(false);
     }
   };
 
@@ -169,20 +179,32 @@ function Dashboard() {
 
 
 
+  // Overall Status: load when the section or segment selection changes.
   useEffect(() => {
-    if (activeSection === "overallStatus") {
-      fetchOverallStatus();
-      return;
-    }
+    if (activeSection !== "overallStatus") return;
 
-    fetchDashboard(activeSection, page);
+    fetchOverallStatus(overallSegments);
+  }, [activeSection, overallSegments]);
+
+  // Regular dashboard sections.
+  useEffect(() => {
+    if (activeSection === "overallStatus") return;
+
+    fetchDashboard(
+      activeSection,
+      page,
+      selectedSummaryTile,
+      selectedStatusId
+    );
   }, [
     activeSection,
     page,
     jobType,
     segment,
     insuranceStatus,
-    serviceAdvisor, // NEW
+    serviceAdvisor,
+    selectedSummaryTile,
+    selectedStatusId,
   ]);
 
   useEffect(() => {
@@ -219,13 +241,12 @@ function Dashboard() {
     setPage(1);
   };
 
-  const handleOverallSegmentChange = (segment) => {
-    const updatedSegments = overallSegments.includes(segment)
-      ? overallSegments.filter((item) => item !== segment)
-      : [...overallSegments, segment];
-
-    setOverallSegments(updatedSegments);
-    fetchOverallStatus(updatedSegments);
+  const handleOverallSegmentChange = (selectedSegment) => {
+    setOverallSegments((previous) =>
+      previous.includes(selectedSegment)
+        ? previous.filter((item) => item !== selectedSegment)
+        : [...previous, selectedSegment]
+    );
   };
 
   const handleApplyFilters = () => {
@@ -235,26 +256,26 @@ function Dashboard() {
 
 
   const handleClearFilters = async () => {
-    // Reset all filter states
     setSearch("");
     setBranch("");
     setSelectedMonth("");
     setSelectedYear("");
     setDateFilterType("promise");
+
     setJobType("");
     setSegment("");
     setInsuranceStatus("");
     setServiceAdvisor("");
 
-    // Reset summary tile and status selection
     setSelectedSummaryTile(null);
     setSelectedStatusId(null);
-
-    // Reset pagination
     setPage(1);
 
-    // Fetch immediately with cleared filters.
-    // Do not depend on state updates having completed.
+    if (activeSection === "overallStatus") {
+      setOverallSegments([]);
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
@@ -368,7 +389,7 @@ function Dashboard() {
         <main className="bs-dashboard-content">
           <div className="bs-dashboard-toolbar">
             <div className="bs-dashboard-toolbar-title">
-              <span className="bs-dashboard-eyebrow">RECORD MANAGEMENT</span>
+              {/* <span className="bs-dashboard-eyebrow">RECORD MANAGEMENT</span> */}
               <h2>
                 {
                   sections.find((section) => section.id === activeSection)
@@ -759,223 +780,346 @@ function Dashboard() {
 
 
 
-          {activeSection === "overallStatus" && !error && (
+
+          {activeSection === "overallStatus" && (
             <section className="bs-dashboard-records bs-overall-section">
-              {loading && <p>Loading overall status...</p>}
+              {/* Loading state */}
+              {overallLoading && (
+                <div className="bs-overall-loading" role="status">
+                  <div className="bs-overall-spinner" />
+                  <p>Loading Overall Status...</p>
+                </div>
+              )}
 
-              {overallStatusData && (() => {
-                const visibleBranches = overallStatusData.branches;
-                const visibleRows = overallStatusData.rows;
+              {/* Error state */}
+              {!overallLoading && overallError && (
+                <div className="bs-dashboard-error" role="alert">
+                  <p>{overallError}</p>
 
-                const branchEstimateMap = new Map(
-                  (overallStatusData.branchEstimates || []).map((item) => [
-                    item.branchId,
-                    item,
-                  ])
-                );
+                  <button
+                    type="button"
+                    onClick={() => fetchOverallStatus(overallSegments)}
+                    className="bs-overall-retry-button"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
 
-                const money = (value) =>
-                  `₹${Number(value || 0).toLocaleString("en-IN", {
-                    maximumFractionDigits: 2,
-                  })}`;
+              {/* Empty state */}
+              {!overallLoading &&
+                !overallError &&
+                !overallStatusData && (
+                  <div className="bs-overall-empty">
+                    No Overall Status data available.
+                    <button
+                      type="button"
+                      onClick={() => fetchOverallStatus(overallSegments)}
+                      className="bs-overall-retry-button"
+                    >
+                      Reload
+                    </button>
+                  </div>
+                )}
 
-                const estimateRows = [
-                  {
-                    key: "currentLabour",
-                    label: "Current Month · Labour",
-                    month: "currentMonth",
-                    field: "labourEstimate",
-                  },
-                  {
-                    key: "currentParts",
-                    label: "Current Month · Parts",
-                    month: "currentMonth",
-                    field: "partsEstimate",
-                  },
-                  {
-                    key: "nextLabour",
-                    label: "Next Month · Labour",
-                    month: "nextMonth",
-                    field: "labourEstimate",
-                  },
-                  {
-                    key: "nextParts",
-                    label: "Next Month · Parts",
-                    month: "nextMonth",
-                    field: "partsEstimate",
-                  },
-                ];
+              {/* Overall Status data */}
+              {!overallLoading &&
+                !overallError &&
+                overallStatusData &&
+                (() => {
+                  const visibleBranches = overallStatusData.branches || [];
+                  const visibleRows = overallStatusData.rows || [];
+                  const statuses = overallStatusData.statuses || [];
 
-                const getEstimate = (branchId, month, field) =>
-                  branchEstimateMap.get(branchId)?.[month]?.[field] || 0;
-
-                const getEstimateTotal = (month, field) =>
-                  visibleBranches.reduce(
-                    (sum, item) =>
-                      sum + getEstimate(item._id, month, field),
-                    0
+                  const rowByBranchId = new Map(
+                    visibleRows.map((row) => [String(row.branchId), row])
                   );
 
-                return (
-                  <>
-                    <div className="bstd-overall-segment-filter">
-                      <button
-                        type="button"
-                        className="bstd-overall-segment-toggle"
-                        onClick={() =>
-                          setOverallSegmentFilterOpen((previous) => !previous)
-                        }
-                      >
-                        Segment Filter
-                        <span>{overallSegments.length || "All"}</span>
-                        <span>{overallSegmentFilterOpen ? "−" : "+"}</span>
-                      </button>
+                  const branchEstimateMap = new Map(
+                    (overallStatusData.branchEstimates || []).map((item) => [
+                      String(item.branchId),
+                      item,
+                    ])
+                  );
 
-                      {overallSegmentFilterOpen && (
+                  const money = (value) =>
+                    `₹${Number(value || 0).toLocaleString("en-IN", {
+                      maximumFractionDigits: 2,
+                    })}`;
+
+                  const estimateRows = [
+                    {
+                      key: "currentLabour",
+                      label: "Current Month · Labour",
+                      month: "currentMonth",
+                      field: "labourEstimate",
+                    },
+                    {
+                      key: "currentParts",
+                      label: "Current Month · Parts",
+                      month: "currentMonth",
+                      field: "partsEstimate",
+                    },
+                    {
+                      key: "nextLabour",
+                      label: "Next Month · Labour",
+                      month: "nextMonth",
+                      field: "labourEstimate",
+                    },
+                    {
+                      key: "nextParts",
+                      label: "Next Month · Parts",
+                      month: "nextMonth",
+                      field: "partsEstimate",
+                    },
+                  ];
+
+                  const getEstimate = (branchId, month, field) =>
+                    branchEstimateMap.get(String(branchId))?.[month]?.[field] || 0;
+
+                  const getEstimateTotal = (month, field) =>
+                    visibleBranches.reduce(
+                      (sum, item) =>
+                        sum + getEstimate(item._id, month, field),
+                      0
+                    );
+
+                  return (
+                    <>
+
+                      {/* Segment filter - single row */}
+                      <div className="bstd-overall-segment-filter">
+                        <span className="bstd-segment-filter-label">Segment:</span>
+
                         <div className="bstd-overall-segment-options">
-                          {availableOverallSegments.map((segment) => (
-                            <label key={segment}>
+                          {availableOverallSegments.map((segmentOption) => (
+                            <label key={segmentOption} className="bstd-segment-checkbox">
                               <input
                                 type="checkbox"
-                                checked={overallSegments.includes(segment)}
-                                onChange={() => handleOverallSegmentChange(segment)}
+                                checked={overallSegments.includes(segmentOption)}
+                                onChange={() => handleOverallSegmentChange(segmentOption)}
                               />
-                              {segment}
+                              <span>{segmentOption}</span>
                             </label>
                           ))}
 
                           <button
                             type="button"
-                            onClick={() => {
-                              setOverallSegments([]);
-                              fetchOverallStatus([]);
-                            }}
+                            className="bstd-segment-clear"
+                            onClick={() => setOverallSegments([])}
                           >
                             Clear
                           </button>
                         </div>
-                      )}
-                    </div>
+                      </div>
 
 
-                    <div className="bs-dashboard-table-wrapper bs-overall-table-wrapper">
-
-                      <table className="bs-dashboard-table bs-overall-table">
-                        <thead>
-                          <tr>
-                            <th className="bs-overall-label-column">
-                              Status / Estimate
-                            </th>
-
-                            {visibleBranches.map((item) => (
-                              <th key={item._id} className="bs-overall-number">
-                                {item.code || item.name}
+                      {/* Table */}
+                      <div className="bs-dashboard-table-wrapper bs-overall-table-wrapper">
+                        <table className="bs-dashboard-table bs-overall-table">
+                          <thead>
+                            <tr>
+                              <th className="bs-overall-label-column">
+                                Status / Estimate
                               </th>
-                            ))}
 
-                            <th className="bs-overall-number">Total</th>
-                          </tr>
-                        </thead>
+                              {visibleBranches.map((item) => (
+                                <th
+                                  key={item._id}
+                                  className="bs-overall-number"
+                                >
+                                  {item.code || item.name}
+                                </th>
+                              ))}
 
-                        <tbody>
-                          {overallStatusData.statuses.map((status) => {
-                            const total = visibleRows.reduce(
-                              (sum, row) =>
-                                sum + (row.statusCounts[String(status._id)] || 0),
-                              0
-                            );
+                              <th className="bs-overall-number">Total</th>
+                            </tr>
+                          </thead>
 
-                            return (
-                              <tr key={status._id}>
-                                <td>{status.name}</td>
+                          <tbody>
+                            {statuses.map((status) => {
+                              const statusKey = String(status._id);
 
-                                {visibleBranches.map((item) => {
-                                  const row = visibleRows.find(
-                                    (entry) => entry.branchId === item._id
-                                  );
-
-                                  return (
-                                    <td key={item._id} className="bs-overall-number">
-                                      {row?.statusCounts[String(status._id)] || 0}
-                                    </td>
-                                  );
-                                })}
-
-                                <td className="bs-overall-number">
-                                  <strong>{total.toLocaleString("en-IN")}</strong>
-                                </td>
-                              </tr>
-                            );
-                          })}
-
-                          <tr className="bs-overall-total-row">
-                            <td><strong>Status Total</strong></td>
-
-                            {visibleBranches.map((item) => {
-                              const row = visibleRows.find(
-                                (entry) => entry.branchId === item._id
+                              const total = visibleRows.reduce(
+                                (sum, row) =>
+                                  sum + (row.statusCounts?.[statusKey] || 0),
+                                0
                               );
 
                               return (
-                                <td key={item._id} className="bs-overall-number">
-                                  <strong>
-                                    {(row?.total || 0).toLocaleString("en-IN")}
-                                  </strong>
-                                </td>
+                                <tr key={status._id}>
+                                  <td>{status.name}</td>
+
+                                  {visibleBranches.map((item) => {
+                                    const row = rowByBranchId.get(String(item._id));
+
+                                    return (
+                                      <td
+                                        key={item._id}
+                                        className="bs-overall-number"
+                                      >
+                                        {row?.statusCounts?.[statusKey] || "-"}
+                                      </td>
+                                    );
+                                  })}
+
+                                  <td className="bs-overall-number">
+                                    <strong>
+                                      {total.toLocaleString("en-IN")}
+                                    </strong>
+                                  </td>
+                                </tr>
                               );
                             })}
 
-                            <td className="bs-overall-number">
-                              <strong>
-                                {visibleRows
-                                  .reduce((sum, row) => sum + row.total, 0)
-                                  .toLocaleString("en-IN")}
-                              </strong>
-                            </td>
-                          </tr>
+                            <tr className="bs-overall-total-row">
+                              <td>
+                                <strong>Status Total</strong>
+                              </td>
 
-                          <tr className="bs-overall-estimate-divider">
-                            <td colSpan={visibleBranches.length + 2}>
-                              Monthly Estimates
-                            </td>
-                          </tr>
+                              {visibleBranches.map((item) => {
+                                const row = rowByBranchId.get(String(item._id));
 
-                          {estimateRows.map((estimate) => (
-                            <tr key={estimate.key} className="bs-overall-estimate-row">
-                              <td>{estimate.label}</td>
+                                return (
+                                  <td
+                                    key={item._id}
+                                    className="bs-overall-number"
+                                  >
+                                    <strong>
+                                      {row?.total
+                                        ? row.total.toLocaleString("en-IN")
+                                        : "-"}
+                                    </strong>
+                                  </td>
+                                );
+                              })}
+
+                              <td className="bs-overall-number">
+                                <strong>
+                                  {visibleRows
+                                    .reduce(
+                                      (sum, row) => sum + (row.total || 0),
+                                      0
+                                    )
+                                    .toLocaleString("en-IN")}
+                                </strong>
+                              </td>
+                            </tr>
+
+                            <tr className="bs-overall-estimate-divider">
+                              <td colSpan={visibleBranches.length + 2}>
+                                Monthly Estimates
+                              </td>
+                            </tr>
+
+                            {estimateRows.map((estimate) => (
+                              <tr
+                                key={estimate.key}
+                                className="bs-overall-estimate-row"
+                              >
+                                <td>{estimate.label}</td>
+
+                                {visibleBranches.map((item) => (
+                                  <td
+                                    key={item._id}
+                                    className="bs-overall-number"
+                                  >
+                                    {money(
+                                      getEstimate(
+                                        item._id,
+                                        estimate.month,
+                                        estimate.field
+                                      )
+                                    )}
+                                  </td>
+                                ))}
+
+                                <td className="bs-overall-number bs-overall-estimate-total">
+                                  <strong>
+                                    {money(
+                                      getEstimateTotal(
+                                        estimate.month,
+                                        estimate.field
+                                      )
+                                    )}
+                                  </strong>
+                                </td>
+                              </tr>
+                            ))}
+                            {/* Grand totals */}
+                            <tr className="bs-overall-grand-total-row">
+                              <td>
+                                <strong>Grand Total · Labour Estimate</strong>
+                              </td>
 
                               {visibleBranches.map((item) => (
                                 <td key={item._id} className="bs-overall-number">
                                   {money(
                                     getEstimate(
                                       item._id,
-                                      estimate.month,
-                                      estimate.field
+                                      "currentMonth",
+                                      "labourEstimate"
+                                    ) +
+                                    getEstimate(
+                                      item._id,
+                                      "nextMonth",
+                                      "labourEstimate"
                                     )
                                   )}
                                 </td>
                               ))}
 
-                              <td className="bs-overall-number bs-overall-estimate-total">
+                              <td className="bs-overall-number">
                                 <strong>
                                   {money(
-                                    getEstimateTotal(
-                                      estimate.month,
-                                      estimate.field
-                                    )
+                                    (overallStatusData.estimateTotals?.currentMonth?.labourEstimate || 0) +
+                                    (overallStatusData.estimateTotals?.nextMonth?.labourEstimate || 0)
                                   )}
                                 </strong>
                               </td>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                );
-              })()}
+
+                            <tr className="bs-overall-grand-total-row">
+                              <td>
+                                <strong>Grand Total · Parts Estimate</strong>
+                              </td>
+
+                              {visibleBranches.map((item) => (
+                                <td key={item._id} className="bs-overall-number">
+                                  {money(
+                                    getEstimate(
+                                      item._id,
+                                      "currentMonth",
+                                      "partsEstimate"
+                                    ) +
+                                    getEstimate(
+                                      item._id,
+                                      "nextMonth",
+                                      "partsEstimate"
+                                    )
+                                  )}
+                                </td>
+                              ))}
+
+                              <td className="bs-overall-number">
+                                <strong>
+                                  {money(
+                                    (overallStatusData.estimateTotals?.currentMonth?.partsEstimate || 0) +
+                                    (overallStatusData.estimateTotals?.nextMonth?.partsEstimate || 0)
+                                  )}
+                                </strong>
+                              </td>
+                            </tr>
+
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  );
+                })()}
             </section>
           )}
+
 
 
 
