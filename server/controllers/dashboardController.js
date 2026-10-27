@@ -878,7 +878,7 @@ const getDashboard = async (req, res) => {
 
 const getOverallStatus = async (req, res) => {
   try {
-    const { branchIds } = req.query;
+    const { branchIds, segments } = req.query;
 
     // 1. Determine branches the user is allowed to access
     let allowedBranchIds = [];
@@ -951,6 +951,34 @@ const getOverallStatus = async (req, res) => {
       .sort({ name: 1 })
       .lean();
 
+
+    // Overall Status segment filter
+    const allowedSegments = ["BEV", "PV", "CV", "LMM", "3W"];
+
+    const selectedSegments = segments
+      ? segments
+        .split(",")
+        .map((segment) => segment.trim().toUpperCase())
+        .filter((segment) => allowedSegments.includes(segment))
+      : [];
+
+    const segmentRecordFilter = {};
+
+    if (selectedSegments.length > 0) {
+      const matchingModels = await VehicleModel.find({
+        isActive: true,
+        subSegmentName: {
+          $in: selectedSegments.map(
+            (segment) => new RegExp(`^${segment}$`, "i")
+          ),
+        },
+      }).select("name");
+
+      segmentRecordFilter.model = {
+        $in: matchingModels.map((item) => item.name),
+      };
+    }
+
     // 3. Find the Billed status ID
     const billedStatus = await Status.findOne({
       name: /^Billed$/i,
@@ -980,6 +1008,7 @@ const getOverallStatus = async (req, res) => {
             $in: selectedBranches.map((b) => b._id),
           },
           ...nonBilledFilter,
+          ...segmentRecordFilter,
         },
       },
       {
@@ -1052,6 +1081,7 @@ const getOverallStatus = async (req, res) => {
             $in: selectedBranches.map((b) => b._id),
           },
           ...nonBilledFilter,
+          ...segmentRecordFilter,
           promisedDeliveryDate: {
             $gte: currentMonthStart,
             $lt: monthAfterNextStart,
