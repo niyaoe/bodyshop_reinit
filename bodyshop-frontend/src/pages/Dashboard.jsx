@@ -414,23 +414,26 @@ function Dashboard() {
                     {filtersVisible ? "−" : "+"}
                   </span>
                 </button>)}
-              <button
-                type="button"
-                className={`bs-dashboard-utility-button ${summaryVisible ? "is-active" : ""}`}
-                onClick={() => setSummaryVisible((value) => !value)}
-                aria-expanded={summaryVisible}
-              >
-                <span aria-hidden="true">▦</span> Summary{" "}
-                <span className="bs-dashboard-chevron">
-                  {summaryVisible ? "−" : "+"}
-                </span>
-              </button>
+              {activeSection !== "overallStatus" && (
+                <button
+                  type="button"
+                  className={`bs-dashboard-utility-button ${summaryVisible ? "is-active" : ""}`}
+                  onClick={() => setSummaryVisible((value) => !value)}
+                  aria-expanded={summaryVisible}
+                >
+                  <span aria-hidden="true">▦</span> Summary{" "}
+                  <span className="bs-dashboard-chevron">
+                    {summaryVisible ? "−" : "+"}
+                  </span>
+                </button>
+              )}
               <button
                 className="bs-dashboard-create-button"
                 onClick={handleCreateRecord}
               >
                 <span aria-hidden="true">＋</span> Create Record
               </button>
+
               {user?.role === "admin" && (
                 <button
                   type="button"
