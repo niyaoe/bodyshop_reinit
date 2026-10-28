@@ -56,6 +56,8 @@ const initialForm = {
   partsBillAmount: "",
 
   billDate: "",
+  voiceToCustomer: "",
+  bodyshopRemarks: "",
 };
 
 function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
@@ -240,6 +242,9 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
         partsBillAmount: editRecord.partsBillAmount ?? "",
 
         billDate: formatDateForInput(editRecord.billDate),
+
+        voiceToCustomer: editRecord.voiceToCustomer || "",
+        bodyshopRemarks: editRecord.bodyshopRemarks || "",
       });
     } else {
       const assignedBranches =
@@ -313,15 +318,63 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
 
 
 
+
       if (isEditMode) {
         await updateFormRecord(editRecord._id, payload);
       } else {
         await createFormRecord(payload);
       }
 
-      onSuccess?.();
+      // Ask whether to open WhatsApp after the record is saved
+      const message = form.voiceToCustomer?.trim();
+      const rawPhone = form.contactNo?.trim() || "";
 
+      if (message && rawPhone) {
+        const digits = rawPhone.replace(/\D/g, "");
+
+        let phone = digits;
+
+        if (digits.length === 10) {
+          phone = `91${digits}`;
+        } else if (digits.length === 11 && digits.startsWith("0")) {
+          phone = `91${digits.slice(1)}`;
+        }
+
+        if (phone.length < 11 || phone.length > 15) {
+          window.alert(
+            "Record saved, but the contact number is invalid for WhatsApp."
+          );
+        } else {
+          const sendWhatsApp = window.confirm(
+            "Record saved successfully. Send Voice to Customer on WhatsApp?"
+          );
+
+          if (sendWhatsApp) {
+            const whatsappUrl =
+              `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+            const whatsappWindow = window.open(
+              whatsappUrl,
+              "_blank",
+              "noopener,noreferrer"
+            );
+
+            if (!whatsappWindow) {
+              window.alert(
+                "WhatsApp could not open. Please allow pop-ups and try again."
+              );
+            }
+          }
+        }
+      } else {
+        window.alert(
+          "Record saved successfully. Add Contact and Voice to Customer to use WhatsApp."
+        );
+      }
+
+      onSuccess?.();
       onClose();
+
     } catch (error) {
       setError(error.response?.data?.message || "Failed to save record");
     } finally {
@@ -862,6 +915,29 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                     value={form.partsBillAmount}
                     onChange={handleChange}
                     placeholder="0.00"
+                  />
+                </div>
+                <div className="bs-form-modal-field bs-form-modal-textarea-field">
+                  <label htmlFor="bs-voiceToCustomer">Voice to Customer</label>
+                  <textarea
+                    id="bs-voiceToCustomer"
+                    name="voiceToCustomer"
+                    value={form.voiceToCustomer}
+                    onChange={handleChange}
+                    placeholder="Enter voice to customer"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="bs-form-modal-field bs-form-modal-textarea-field">
+                  <label htmlFor="bs-bodyshopRemarks">Bodyshop Remarks</label>
+                  <textarea
+                    id="bs-bodyshopRemarks"
+                    name="bodyshopRemarks"
+                    value={form.bodyshopRemarks}
+                    onChange={handleChange}
+                    placeholder="Enter bodyshop remarks"
+                    rows={4}
                   />
                 </div>
               </div>
