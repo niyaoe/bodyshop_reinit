@@ -551,7 +551,7 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                     name="regNo"
                     value={form.regNo}
                     onChange={handleChange}
-                    placeholder="KL01AB1234"
+                    placeholder="KL10AX6753"
                     required
                   />
                 </div>
