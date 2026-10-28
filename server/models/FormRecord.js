@@ -36,10 +36,13 @@ const formRecordSchema = new mongoose.Schema(
 
     regNo: {
       type: String,
-      // required: true,
+      required: true,
       uppercase: true,
       trim: true,
-      match: [/^\S+$/, "Registration number cannot contain spaces"],
+      set: (value) =>
+        typeof value === "string"
+          ? value.replace(/\s+/g, "").toUpperCase()
+          : value,
     },
 
     model: {
