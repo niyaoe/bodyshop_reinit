@@ -135,6 +135,18 @@ const formRecordSchema = new mongoose.Schema(
     billDate: {
       type: Date,
     },
+    
+    voiceToCustomer: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    bodyshopRemarks: {
+      type: String,
+      default: "",
+      trim: true,
+    },
   },
   {
     timestamps: true,

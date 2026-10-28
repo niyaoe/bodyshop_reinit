@@ -47,6 +47,8 @@ const createFormRecord = async (req, res) => {
       labourBillAmount,
       partsBillAmount,
       billDate,
+      voiceToCustomer,
+      bodyshopRemarks,
     } = req.body;
 
     // ----------------------------------
@@ -197,6 +199,9 @@ const createFormRecord = async (req, res) => {
       partsBillAmount,
 
       billDate,
+
+      voiceToCustomer,
+      bodyshopRemarks,
     });
 
     const createdStatus = await Status.findById(record.presentStatus).select(
@@ -417,6 +422,8 @@ const updateFormRecord = async (req, res) => {
       labourBillAmount,
       partsBillAmount,
       billDate,
+      voiceToCustomer,
+      bodyshopRemarks,
     } = req.body;
 
     // ----------------------------------
@@ -589,6 +596,14 @@ const updateFormRecord = async (req, res) => {
 
     if (billDate !== undefined) {
       record.billDate = billDate;
+    }
+    
+    if (voiceToCustomer !== undefined) {
+      record.voiceToCustomer = voiceToCustomer;
+    }
+
+    if (bodyshopRemarks !== undefined) {
+      record.bodyshopRemarks = bodyshopRemarks;
     }
 
     const currentStatus = record.presentStatus
