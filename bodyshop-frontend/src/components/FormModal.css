@@ -505,3 +505,21 @@
   border-color: #e5485d !important;
   box-shadow: 0 0 0 3px rgba(229, 72, 93, 0.15);
 }
+
+/* roaging */
+
+
+
+.bs-ro-aging-tile {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid #dce3ed;
+  border-radius: 6px;
+  background: #eef4ff;
+  color: #234b91;
+  font-size: 13px;
+  font-weight: 700;
+}
+

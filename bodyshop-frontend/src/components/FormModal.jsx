@@ -60,6 +60,22 @@ const initialForm = {
   bodyshopRemarks: "",
 };
 
+
+const calculateRoAging = (roDate) => {
+  if (!roDate) return null;
+
+  const date = new Date(`${roDate.slice(0, 10)}T00:00:00`);
+  const today = new Date();
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  date.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  return Math.floor((today - date) / (1000 * 60 * 60 * 24));
+};
+
+
 function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -286,22 +302,26 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
     }));
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       setLoading(true);
-
       setError("");
 
       const payload = {
         ...form,
 
         labourEstimate:
-          form.labourEstimate === "" ? undefined : Number(form.labourEstimate),
+          form.labourEstimate === ""
+            ? undefined
+            : Number(form.labourEstimate),
 
         partsEstimate:
-          form.partsEstimate === "" ? undefined : Number(form.partsEstimate),
+          form.partsEstimate === ""
+            ? undefined
+            : Number(form.partsEstimate),
 
         labourBillAmount:
           form.labourBillAmount === ""
@@ -314,73 +334,49 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
             : Number(form.partsBillAmount),
       };
 
-
-
-
-
-
+      // Save or update the record first
       if (isEditMode) {
         await updateFormRecord(editRecord._id, payload);
       } else {
         await createFormRecord(payload);
       }
 
-      // Ask whether to open WhatsApp after the record is saved
-      const message = form.voiceToCustomer?.trim();
-      const rawPhone = form.contactNo?.trim() || "";
+      // Prepare WhatsApp message
+      const roNumber = form.roNumber?.trim() || "-";
+      const regNo = form.regNo?.trim() || "-";
+      const voiceMessage = form.voiceToCustomer?.trim() || "";
 
-      if (message && rawPhone) {
-        const digits = rawPhone.replace(/\D/g, "");
+      const whatsappMessage = [
+        `RO Number: ${roNumber}`,
+        `Registration Number: ${regNo}`,
+        "",
+        "Voice to Customer:",
+        voiceMessage,
+      ].join("\n");
 
-        let phone = digits;
+      // Ask whether to open WhatsApp
+      const sendWhatsApp = window.confirm(
+        "Record saved successfully. Open WhatsApp to send Voice to Customer?"
+      );
 
-        if (digits.length === 10) {
-          phone = `91${digits}`;
-        } else if (digits.length === 11 && digits.startsWith("0")) {
-          phone = `91${digits.slice(1)}`;
-        }
+      if (sendWhatsApp) {
+        const whatsappUrl =
+          `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
 
-        if (phone.length < 11 || phone.length > 15) {
-          window.alert(
-            "Record saved, but the contact number is invalid for WhatsApp."
-          );
-        } else {
-          const sendWhatsApp = window.confirm(
-            "Record saved successfully. Send Voice to Customer on WhatsApp?"
-          );
-
-          if (sendWhatsApp) {
-            const whatsappUrl =
-              `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-
-            const whatsappWindow = window.open(
-              whatsappUrl,
-              "_blank",
-              "noopener,noreferrer"
-            );
-
-            if (!whatsappWindow) {
-              window.alert(
-                "WhatsApp could not open. Please allow pop-ups and try again."
-              );
-            }
-          }
-        }
-      } else {
-        window.alert(
-          "Record saved successfully. Add Contact and Voice to Customer to use WhatsApp."
-        );
+        window.open(whatsappUrl, "_blank");
       }
 
       onSuccess?.();
       onClose();
-
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to save record");
+      setError(
+        error.response?.data?.message || "Failed to save record"
+      );
     } finally {
       setLoading(false);
     }
   };
+
 
   if (!isOpen) {
     return null;
@@ -634,6 +630,17 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                     onChange={handleChange}
                   />
                 </div>
+
+
+                <div className="bs-form-modal-field">
+                  <label>RO Aging</label>
+                  <div className="bs-ro-aging-tile">
+                    {calculateRoAging(form.roDate) === null
+                      ? "—"
+                      : `${calculateRoAging(form.roDate)} days`}
+                  </div>
+                </div>
+
 
                 <div className="bs-form-modal-field">
                   <label htmlFor="bs-roNumber">RO Number</label>

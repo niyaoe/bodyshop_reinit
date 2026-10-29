@@ -1149,6 +1149,7 @@ function Dashboard() {
                         <th className="bs-sticky-reg">Registration</th>
                         <th>Yard Entry Date</th>
                         <th>RO Date</th>
+                        <th>RO Aging</th>
                         <th>RO</th>
                         <th>Model</th>
 
@@ -1289,6 +1290,22 @@ function Dashboard() {
                                 ? new Date(record.roDate).toLocaleDateString()
                                 : "-"}
                             </td>
+
+                            <td>
+                              {record.roDate
+                                ? (() => {
+                                  const roDate = new Date(record.roDate);
+                                  const today = new Date();
+
+                                  roDate.setHours(0, 0, 0, 0);
+                                  today.setHours(0, 0, 0, 0);
+
+                                  return `${Math.floor(
+                                    (today - roDate) / (1000 * 60 * 60 * 24)
+                                  )} days`;
+                                })()
+                                : "-"}
+                            </td>
                             <td className="bs-dashboard-ro-cell">
                               {record.roNumber}
                             </td>
@@ -1379,7 +1396,7 @@ function Dashboard() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="24" className="bs-dashboard-empty">
+                          <td colSpan="25" className="bs-dashboard-empty">
                             No records found
                           </td>
                         </tr>
