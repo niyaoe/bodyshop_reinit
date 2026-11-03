@@ -1,5 +1,121 @@
 const mongoose = require("mongoose");
 
+const inspectionResultSchema = new mongoose.Schema(
+  {
+    code: {
+      type: Number,
+      required: true,
+    },
+    result: {
+      type: String,
+      enum: ["", "OK", "Not OK", "Not Applicable"],
+      default: "",
+    },
+    recheck: {
+      type: String,
+      enum: ["", "OK", "Not OK", "Not Applicable"],
+      default: "",
+    },
+  },
+  { _id: false },
+);
+
+const q1Schema = new mongoose.Schema(
+  {
+    items: {
+      type: [inspectionResultSchema],
+      default: [],
+    },
+
+    techNames: {
+      denting: { type: String, default: "" },
+      migBrazingWelding: { type: String, default: "" },
+      antiRustApplication: { type: String, default: "" },
+      spotWelding: { type: String, default: "" },
+      pullingMeasurement: { type: String, default: "" },
+    },
+
+    checkedBy: { type: String, default: "" },
+    reviewedBy: { type: String, default: "" },
+    approvedBy: { type: String, default: "" },
+  },
+
+  { _id: false },
+
+);
+
+const q2Schema = new mongoose.Schema(
+  {
+    items: {
+      type: [inspectionResultSchema],
+      default: [],
+    },
+
+    techNames: {
+      putty: { type: String, default: "" },
+      primerSurfacer: { type: String, default: "" },
+      masking: { type: String, default: "" },
+      colourMatchingPainting: { type: String, default: "" },
+      polishing: { type: String, default: "" },
+    },
+
+    checkedBy: { type: String, default: "" },
+    reviewedBy: { type: String, default: "" },
+    approvedBy: { type: String, default: "" },
+  },
+
+  { _id: false },
+
+);
+
+
+const q3Schema = new mongoose.Schema(
+  {
+    items: {
+      type: [inspectionResultSchema],
+      default: [],
+    },
+
+    remarks: {
+      type: String,
+      default: "",
+    },
+
+    recommendations: {
+      type: String,
+      default: "",
+    },
+
+    finalInspectorResult: {
+      type: String,
+      enum: ["", "OK", "Not OK"],
+      default: "",
+    },
+
+    reInspectionDate: {
+      type: String,
+      default: "",
+    },
+
+    checkedBy: {
+      type: String,
+      default: "",
+    },
+
+    reviewedBy: {
+      type: String,
+      default: "",
+    },
+
+    approvedBy: {
+      type: String,
+      default: "",
+    },
+  },
+  { _id: false }
+);
+
+
 const formRecordSchema = new mongoose.Schema(
   {
     slNo: {
@@ -135,7 +251,7 @@ const formRecordSchema = new mongoose.Schema(
     billDate: {
       type: Date,
     },
-    
+
     voiceToCustomer: {
       type: String,
       default: "",
@@ -147,10 +263,23 @@ const formRecordSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    q1: {
+      type: q1Schema,
+      default: null,
+    },
+    q2: {
+      type: q2Schema,
+      default: null,
+    },
+    q3: {
+      type: q3Schema,
+      default: null,
+    },
   },
   {
     timestamps: true,
   },
+
 );
 
 module.exports = mongoose.model("FormRecord", formRecordSchema);

@@ -597,7 +597,7 @@ const updateFormRecord = async (req, res) => {
     if (billDate !== undefined) {
       record.billDate = billDate;
     }
-    
+
     if (voiceToCustomer !== undefined) {
       record.voiceToCustomer = voiceToCustomer;
     }
@@ -769,10 +769,116 @@ const getFormRecordHistory = async (req, res) => {
   }
 };
 
+// Get inspection form
+const getInspectionForm = async (req, res) => {
+  try {
+    const { id, type } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid record ID" });
+    }
+
+    if (!["q1", "q2", "q3"].includes(type)) {
+      return res.status(400).json({
+        message: "Invalid inspection form type",
+      });
+    }
+
+    const record = await FormRecord.findById(id);
+
+    if (!record) {
+      return res.status(404).json({
+        message: "Form record not found",
+      });
+    }
+
+    if (req.user.role !== "admin") {
+      const assignedBranchIds = getAssignedBranchIds(req.user);
+
+      if (!assignedBranchIds.includes(String(record.branch))) {
+        return res.status(403).json({
+          message: "You do not have access to this record",
+        });
+      }
+    }
+
+    return res.status(200).json({
+      message: "Inspection form fetched successfully",
+      inspection: record[type] || null,
+      mainDetails: {
+        roNumber: record.roNumber,
+        regNo: record.regNo,
+        roDate: record.roDate,
+        model: record.model,
+        jobType: record.jobType,
+      },
+    });
+  } catch (error) {
+    console.error("Get inspection form error:", error);
+
+    return res.status(500).json({
+      message: "Failed to fetch inspection form",
+    });
+  }
+};
+
+
+// Save or update inspection form
+const saveInspectionForm = async (req, res) => {
+  try {
+    const { id, type } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid record ID" });
+    }
+
+    if (!["q1", "q2", "q3"].includes(type)) {
+      return res.status(400).json({
+        message: "Invalid inspection form type",
+      });
+    }
+
+    const record = await FormRecord.findById(id);
+
+    if (!record) {
+      return res.status(404).json({
+        message: "Form record not found",
+      });
+    }
+
+    if (req.user.role !== "admin") {
+      const assignedBranchIds = getAssignedBranchIds(req.user);
+
+      if (!assignedBranchIds.includes(String(record.branch))) {
+        return res.status(403).json({
+          message: "You do not have access to this record",
+        });
+      }
+    }
+
+    record[type] = req.body;
+
+    await record.save();
+
+    return res.status(200).json({
+      message: "Inspection form saved successfully",
+      inspection: record[type],
+    });
+  } catch (error) {
+    console.error("Save inspection form error:", error);
+
+    return res.status(500).json({
+      message: "Failed to save inspection form",
+    });
+  }
+};
+
 module.exports = {
   createFormRecord,
   getFormRecords,
   updateFormRecord,
   getFormRecordHistory,
   deleteFormRecord,
+  getInspectionForm,
+  saveInspectionForm,
 };

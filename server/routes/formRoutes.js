@@ -6,6 +6,8 @@ const {
   updateFormRecord,
   getFormRecordHistory,
   deleteFormRecord,
+  getInspectionForm,
+  saveInspectionForm,
 } = require("../controllers/formController");
 
 const protect = require("../middleware/authMiddleware");
@@ -32,7 +34,23 @@ router.put(
   updateFormRecord,
 );
 
-router.delete("/:id", protect , authorize("admin"), deleteFormRecord);
+router.delete("/:id", protect, authorize("admin"), deleteFormRecord);
+
+// Get Q1/Q2/Q3 inspection form
+router.get(
+  "/:id/inspections/:type",
+  protect,
+  authorize("admin", "manager", "user"),
+  getInspectionForm,
+);
+
+// Save or update Q1/Q2/Q3 inspection form
+router.put(
+  "/:id/inspections/:type",
+  protect,
+  authorize("admin", "manager", "user"),
+  saveInspectionForm,
+);
 
 // View record history
 router.get(
