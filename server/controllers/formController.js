@@ -46,6 +46,9 @@ const createFormRecord = async (req, res) => {
       presentStatus,
       labourBillAmount,
       partsBillAmount,
+      labourBillAmountWithGst,
+      partsBillAmountWithGst,
+      depreciationAmount,
       billDate,
       voiceToCustomer,
       bodyshopRemarks,
@@ -156,6 +159,21 @@ const createFormRecord = async (req, res) => {
         message: "Invalid or inactive present status",
       });
     }
+    // Billed section requires both amounts (without GST)
+    if (
+      String(status.section || "").trim().toLowerCase() === "billed" &&
+      (labourBillAmount === undefined ||
+        labourBillAmount === null ||
+        labourBillAmount === "" ||
+        partsBillAmount === undefined ||
+        partsBillAmount === null ||
+        partsBillAmount === "")
+    ) {
+      return res.status(400).json({
+        message:
+          "Labour Amount (Without GST) and Parts Amount (Without GST) are required for Billed records",
+      });
+    }
 
     // ----------------------------------
     // Create record
@@ -197,6 +215,9 @@ const createFormRecord = async (req, res) => {
 
       labourBillAmount,
       partsBillAmount,
+      labourBillAmountWithGst,
+      partsBillAmountWithGst,
+      depreciationAmount,
 
       billDate,
 
@@ -421,6 +442,10 @@ const updateFormRecord = async (req, res) => {
       presentStatus,
       labourBillAmount,
       partsBillAmount,
+      labourBillAmountWithGst,
+      partsBillAmountWithGst,
+      depreciationAmount,
+
       billDate,
       voiceToCustomer,
       bodyshopRemarks,
@@ -594,6 +619,18 @@ const updateFormRecord = async (req, res) => {
       record.partsBillAmount = partsBillAmount;
     }
 
+    if (labourBillAmountWithGst !== undefined) {
+      record.labourBillAmountWithGst = labourBillAmountWithGst;
+    }
+
+    if (partsBillAmountWithGst !== undefined) {
+      record.partsBillAmountWithGst = partsBillAmountWithGst;
+    }
+
+    if (depreciationAmount !== undefined) {
+      record.depreciationAmount = depreciationAmount;
+    }
+
     if (billDate !== undefined) {
       record.billDate = billDate;
     }
@@ -607,8 +644,24 @@ const updateFormRecord = async (req, res) => {
     }
 
     const currentStatus = record.presentStatus
-      ? await Status.findById(record.presentStatus).select("name")
+      ? await Status.findById(record.presentStatus).select("name section")
       : null;
+
+    // Billed section requires both amounts (without GST)
+    if (
+      String(currentStatus?.section || "").trim().toLowerCase() === "billed" &&
+      (record.labourBillAmount === undefined ||
+        record.labourBillAmount === null ||
+        record.labourBillAmount === "" ||
+        record.partsBillAmount === undefined ||
+        record.partsBillAmount === null ||
+        record.partsBillAmount === "")
+    ) {
+      return res.status(400).json({
+        message:
+          "Labour Amount (Without GST) and Parts Amount (Without GST) are required for Billed records",
+      });
+    }
 
     const currentValues = {
       presentStatus: currentStatus?.name || "",

@@ -237,13 +237,29 @@ const formRecordSchema = new mongoose.Schema(
       ref: "Status",
       required: true,
     },
-
     labourBillAmount: {
       type: Number,
       min: 0,
     },
 
     partsBillAmount: {
+      type: Number,
+      min: 0,
+    },
+
+    // Amounts including GST
+    labourBillAmountWithGst: {
+      type: Number,
+      min: 0,
+    },
+
+    partsBillAmountWithGst: {
+      type: Number,
+      min: 0,
+    },
+
+    // Depreciation
+    depreciationAmount: {
       type: Number,
       min: 0,
     },
