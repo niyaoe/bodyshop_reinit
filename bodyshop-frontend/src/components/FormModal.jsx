@@ -28,6 +28,8 @@ const initialForm = {
   contactNo: "",
 
   serviceAdvisor: "",
+  surveyorName: "",
+  surveyDate: "",
 
   whatsappGroupCreationDate: "",
 
@@ -62,7 +64,6 @@ const initialForm = {
   voiceToCustomer: "",
   bodyshopRemarks: "",
 };
-
 
 const calculateRoAging = (roDate) => {
   if (!roDate) return null;
@@ -334,7 +335,6 @@ const q2InspectionItems = [
   },
 ];
 
-
 const q3Categories = [
   {
     key: "cleaningWashing",
@@ -407,10 +407,6 @@ const q3InspectionItems = [
 
 const q3Options = ["OK", "Not OK", "Not Applicable"];
 
-
-
-
-
 function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -439,8 +435,6 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");
 
-
-
   const [activeView, setActiveView] = useState("record");
 
   const [q1Data, setQ1Data] = useState(null);
@@ -448,12 +442,10 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
   const [q1Saving, setQ1Saving] = useState(false);
   const [q1Error, setQ1Error] = useState("");
 
-
   const [q2Data, setQ2Data] = useState(null);
   const [q2Loading, setQ2Loading] = useState(false);
   const [q2Saving, setQ2Saving] = useState(false);
   const [q2Error, setQ2Error] = useState("");
-
 
   const [q3Data, setQ3Data] = useState(null);
   const [q3Loading, setQ3Loading] = useState(false);
@@ -466,10 +458,9 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
    */
 
   const backToRecord = () => {
-    setHistoryOpen(false)
-    onClose()
-
-  }
+    setHistoryOpen(false);
+    onClose();
+  };
 
   const fetchVehicleModels = async () => {
     try {
@@ -540,9 +531,7 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
           params: { branch: form.branch },
         });
 
-        setServiceAdvisors(
-          response.data.serviceAdvisors || []
-        );
+        setServiceAdvisors(response.data.serviceAdvisors || []);
       } catch (error) {
         console.error("Failed to load service advisors:", error);
         setServiceAdvisors([]);
@@ -580,6 +569,8 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
         contactNo: editRecord.contactNo || "",
 
         serviceAdvisor: editRecord.serviceAdvisor || "",
+        surveyorName: editRecord.surveyorName || "",
+        surveyDate: formatDateForInput(editRecord.surveyDate),
 
         whatsappGroupCreationDate: formatDateForInput(
           editRecord.whatsappGroupCreationDate,
@@ -612,14 +603,11 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
 
         partsBillAmount: editRecord.partsBillAmount ?? "",
 
-        labourBillAmountWithGst:
-          editRecord.labourBillAmountWithGst ?? "",
+        labourBillAmountWithGst: editRecord.labourBillAmountWithGst ?? "",
 
-        partsBillAmountWithGst:
-          editRecord.partsBillAmountWithGst ?? "",
+        partsBillAmountWithGst: editRecord.partsBillAmountWithGst ?? "",
 
-        depreciationAmount:
-          editRecord.depreciationAmount ?? "",
+        depreciationAmount: editRecord.depreciationAmount ?? "",
 
         billDate: formatDateForInput(editRecord.billDate),
 
@@ -730,26 +718,22 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
     setQ1Error("");
 
     try {
-      const response = await api.get(
-        `/forms/${editRecord._id}/inspections/q1`
-      );
+      const response = await api.get(`/forms/${editRecord._id}/inspections/q1`);
 
       setQ1Data(
         response.data.inspection
           ? {
-            ...createEmptyQ1(),
-            ...response.data.inspection,
-            techNames: {
-              ...createEmptyQ1().techNames,
-              ...response.data.inspection.techNames,
-            },
-          }
-          : createEmptyQ1()
+              ...createEmptyQ1(),
+              ...response.data.inspection,
+              techNames: {
+                ...createEmptyQ1().techNames,
+                ...response.data.inspection.techNames,
+              },
+            }
+          : createEmptyQ1(),
       );
     } catch (error) {
-      setQ1Error(
-        error.response?.data?.message || "Failed to load Q1 form"
-      );
+      setQ1Error(error.response?.data?.message || "Failed to load Q1 form");
     } finally {
       setQ1Loading(false);
     }
@@ -762,16 +746,11 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
     setQ1Error("");
 
     try {
-      await api.put(
-        `/forms/${editRecord._id}/inspections/q1`,
-        q1Data
-      );
+      await api.put(`/forms/${editRecord._id}/inspections/q1`, q1Data);
 
       alert("Q1 inspection saved successfully.");
     } catch (error) {
-      setQ1Error(
-        error.response?.data?.message || "Failed to save Q1 form"
-      );
+      setQ1Error(error.response?.data?.message || "Failed to save Q1 form");
     } finally {
       setQ1Saving(false);
     }
@@ -788,9 +767,7 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
     setQ2Error("");
 
     try {
-      const response = await api.get(
-        `/forms/${editRecord._id}/inspections/q2`
-      );
+      const response = await api.get(`/forms/${editRecord._id}/inspections/q2`);
 
       const empty = createEmptyQ2();
       const saved = response.data.inspection;
@@ -798,19 +775,17 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
       setQ2Data(
         saved
           ? {
-            ...empty,
-            ...saved,
-            techNames: {
-              ...empty.techNames,
-              ...saved.techNames,
-            },
-          }
-          : empty
+              ...empty,
+              ...saved,
+              techNames: {
+                ...empty.techNames,
+                ...saved.techNames,
+              },
+            }
+          : empty,
       );
     } catch (error) {
-      setQ2Error(
-        error.response?.data?.message || "Failed to load Q2 form"
-      );
+      setQ2Error(error.response?.data?.message || "Failed to load Q2 form");
     } finally {
       setQ2Loading(false);
     }
@@ -823,16 +798,11 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
     setQ2Error("");
 
     try {
-      await api.put(
-        `/forms/${editRecord._id}/inspections/q2`,
-        q2Data
-      );
+      await api.put(`/forms/${editRecord._id}/inspections/q2`, q2Data);
 
       alert("Q2 inspection saved successfully.");
     } catch (error) {
-      setQ2Error(
-        error.response?.data?.message || "Failed to save Q2 form"
-      );
+      setQ2Error(error.response?.data?.message || "Failed to save Q2 form");
     } finally {
       setQ2Saving(false);
     }
@@ -849,9 +819,7 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
     setQ3Error("");
 
     try {
-      const response = await api.get(
-        `/forms/${editRecord._id}/inspections/q3`
-      );
+      const response = await api.get(`/forms/${editRecord._id}/inspections/q3`);
 
       const empty = createEmptyQ3();
       const saved = response.data.inspection;
@@ -859,24 +827,22 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
       setQ3Data(
         saved
           ? {
-            ...empty,
-            ...saved,
-            items: empty.items.map((defaultItem) => {
-              const savedItem = saved.items?.find(
-                (item) => item.code === defaultItem.code
-              );
+              ...empty,
+              ...saved,
+              items: empty.items.map((defaultItem) => {
+                const savedItem = saved.items?.find(
+                  (item) => item.code === defaultItem.code,
+                );
 
-              return savedItem
-                ? { ...defaultItem, ...savedItem }
-                : defaultItem;
-            }),
-          }
-          : empty
+                return savedItem
+                  ? { ...defaultItem, ...savedItem }
+                  : defaultItem;
+              }),
+            }
+          : empty,
       );
     } catch (error) {
-      setQ3Error(
-        error.response?.data?.message || "Failed to load Q3 form"
-      );
+      setQ3Error(error.response?.data?.message || "Failed to load Q3 form");
     } finally {
       setQ3Loading(false);
     }
@@ -889,21 +855,15 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
     setQ3Error("");
 
     try {
-      await api.put(
-        `/forms/${editRecord._id}/inspections/q3`,
-        q3Data
-      );
+      await api.put(`/forms/${editRecord._id}/inspections/q3`, q3Data);
 
       alert("Q3 inspection saved successfully.");
     } catch (error) {
-      setQ3Error(
-        error.response?.data?.message || "Failed to save Q3 form"
-      );
+      setQ3Error(error.response?.data?.message || "Failed to save Q3 form");
     } finally {
       setQ3Saving(false);
     }
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -916,14 +876,10 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
         ...form,
 
         labourEstimate:
-          form.labourEstimate === ""
-            ? undefined
-            : Number(form.labourEstimate),
+          form.labourEstimate === "" ? undefined : Number(form.labourEstimate),
 
         partsEstimate:
-          form.partsEstimate === ""
-            ? undefined
-            : Number(form.partsEstimate),
+          form.partsEstimate === "" ? undefined : Number(form.partsEstimate),
 
         labourBillAmount:
           form.labourBillAmount === ""
@@ -973,12 +929,11 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
 
       // Ask whether to open WhatsApp
       const sendWhatsApp = window.confirm(
-        "Record saved successfully. Open WhatsApp to send Voice to Customer?"
+        "Record saved successfully. Open WhatsApp to send Voice to Customer?",
       );
 
       if (sendWhatsApp) {
-        const whatsappUrl =
-          `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
 
         window.open(whatsappUrl, "_blank");
       }
@@ -986,14 +941,11 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
       onSuccess?.();
       onClose();
     } catch (error) {
-      setError(
-        error.response?.data?.message || "Failed to save record"
-      );
+      setError(error.response?.data?.message || "Failed to save record");
     } finally {
       setLoading(false);
     }
   };
-
 
   if (!isOpen) {
     return null;
@@ -1047,11 +999,11 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
   return (
     <div
       className="bs-form-modal-overlay"
-    // onMouseDown={(e) => {
-    //   if (e.target.classList.contains("bs-form-modal-overlay")) {
-    //     onClose();
-    //   }
-    // }}
+      // onMouseDown={(e) => {
+      //   if (e.target.classList.contains("bs-form-modal-overlay")) {
+      //     onClose();
+      //   }
+      // }}
     >
       <div className="bs-form-modal">
         {/* HEADER */}
@@ -1074,8 +1026,9 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
               <>
                 <button
                   type="button"
-                  className={`bs-form-modal-history-button ${activeView === "history" ? "active" : ""
-                    }`}
+                  className={`bs-form-modal-history-button ${
+                    activeView === "history" ? "active" : ""
+                  }`}
                   onClick={() => {
                     setActiveView("history");
                     handleViewHistory();
@@ -1088,9 +1041,9 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                   <button
                     key={type}
                     type="button"
-
-                    className={`bs-form-modal-history-button ${activeView === type ? "active" : ""
-                      }`}
+                    className={`bs-form-modal-history-button ${
+                      activeView === type ? "active" : ""
+                    }`}
                     onClick={
                       type === "q1"
                         ? handleOpenQ1
@@ -1262,11 +1215,11 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                               <tbody>
                                 {category.codes.map((code) => {
                                   const inspection = q1InspectionItems.find(
-                                    (entry) => entry.code === code
+                                    (entry) => entry.code === code,
                                   );
 
                                   const item = q1Data.items.find(
-                                    (entry) => entry.code === code
+                                    (entry) => entry.code === code,
                                   );
 
                                   return (
@@ -1286,13 +1239,15 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                                             onChange={(e) =>
                                               setQ1Data((prev) => ({
                                                 ...prev,
-                                                items: prev.items.map((entry) =>
-                                                  entry.code === code
-                                                    ? {
-                                                      ...entry,
-                                                      [field]: e.target.value,
-                                                    }
-                                                    : entry
+                                                items: prev.items.map(
+                                                  (entry) =>
+                                                    entry.code === code
+                                                      ? {
+                                                          ...entry,
+                                                          [field]:
+                                                            e.target.value,
+                                                        }
+                                                      : entry,
                                                 ),
                                               }))
                                             }
@@ -1300,7 +1255,10 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                                             <option value="">Select</option>
 
                                             {q1Options.map((option) => (
-                                              <option key={option} value={option}>
+                                              <option
+                                                key={option}
+                                                value={option}
+                                              >
                                                 {option}
                                               </option>
                                             ))}
@@ -1316,7 +1274,6 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                         </section>
                       ))}
                     </div>
-
 
                     <div className="bs-q1-approval">
                       {[
@@ -1339,7 +1296,6 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                         </div>
                       ))}
                     </div>
-
                   </div>
                 )}
 
@@ -1395,10 +1351,7 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                   <div className="bs-q1-content">
                     <div className="bs-q1-categories-grid">
                       {q2Categories.map((category) => (
-                        <section
-                          className="bs-q1-category"
-                          key={category.key}
-                        >
+                        <section className="bs-q1-category" key={category.key}>
                           <h3>{category.title}</h3>
 
                           <div className="bs-q1-tech-field">
@@ -1434,11 +1387,11 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                               <tbody>
                                 {category.codes.map((code) => {
                                   const inspection = q2InspectionItems.find(
-                                    (entry) => entry.code === code
+                                    (entry) => entry.code === code,
                                   );
 
                                   const item = q2Data.items.find(
-                                    (entry) => entry.code === code
+                                    (entry) => entry.code === code,
                                   );
 
                                   return (
@@ -1455,13 +1408,15 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                                             onChange={(e) =>
                                               setQ2Data((prev) => ({
                                                 ...prev,
-                                                items: prev.items.map((entry) =>
-                                                  entry.code === code
-                                                    ? {
-                                                      ...entry,
-                                                      [field]: e.target.value,
-                                                    }
-                                                    : entry
+                                                items: prev.items.map(
+                                                  (entry) =>
+                                                    entry.code === code
+                                                      ? {
+                                                          ...entry,
+                                                          [field]:
+                                                            e.target.value,
+                                                        }
+                                                      : entry,
                                                 ),
                                               }))
                                             }
@@ -1533,7 +1488,6 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
               </>
             )}
           </div>
-
         ) : activeView === "q3" ? (
           <div className="bs-q1-container">
             {q3Loading ? (
@@ -1582,11 +1536,11 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                               <tbody>
                                 {category.codes.map((code) => {
                                   const inspection = q3InspectionItems.find(
-                                    (entry) => entry.code === code
+                                    (entry) => entry.code === code,
                                   );
 
                                   const item = q3Data.items.find(
-                                    (entry) => entry.code === code
+                                    (entry) => entry.code === code,
                                   );
 
                                   return (
@@ -1601,13 +1555,15 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                                             onChange={(e) =>
                                               setQ3Data((prev) => ({
                                                 ...prev,
-                                                items: prev.items.map((entry) =>
-                                                  entry.code === code
-                                                    ? {
-                                                      ...entry,
-                                                      [field]: e.target.value,
-                                                    }
-                                                    : entry
+                                                items: prev.items.map(
+                                                  (entry) =>
+                                                    entry.code === code
+                                                      ? {
+                                                          ...entry,
+                                                          [field]:
+                                                            e.target.value,
+                                                        }
+                                                      : entry,
                                                 ),
                                               }))
                                             }
@@ -1615,7 +1571,10 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                                             <option value="">Select</option>
 
                                             {q3Options.map((option) => (
-                                              <option key={option} value={option}>
+                                              <option
+                                                key={option}
+                                                value={option}
+                                              >
                                                 {option}
                                               </option>
                                             ))}
@@ -1737,8 +1696,6 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
             )}
           </div>
         ) : loadingData ? (
-
-
           <div className="bs-form-modal-loading">
             <img
               src="/loading.png"
@@ -1819,7 +1776,6 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                   />
                 </div>
 
-
                 <div className="bs-form-modal-field">
                   <label>RO Aging</label>
                   <div className="bs-ro-aging-tile">
@@ -1828,7 +1784,6 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                       : `${calculateRoAging(form.roDate)} days`}
                   </div>
                 </div>
-
 
                 <div className="bs-form-modal-field">
                   <label htmlFor="bs-roNumber">RO Number</label>
@@ -1987,6 +1942,29 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                 </div>
 
                 <div className="bs-form-modal-field">
+                  <label htmlFor="bs-surveyorName">Surveyor Name</label>
+                  <input
+                    id="bs-surveyorName"
+                    type="text"
+                    name="surveyorName"
+                    value={form.surveyorName}
+                    onChange={handleChange}
+                    placeholder="Enter surveyor name"
+                  />
+                </div>
+
+                <div className="bs-form-modal-field">
+                  <label htmlFor="bs-surveyDate">Survey Date</label>
+                  <input
+                    id="bs-surveyDate"
+                    type="date"
+                    name="surveyDate"
+                    value={form.surveyDate}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="bs-form-modal-field">
                   <label htmlFor="bs-nextPmsDate">PMS Date</label>
                   <input
                     id="bs-nextPmsDate"
@@ -2009,7 +1987,6 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                     <option value="Elig">Eligible</option>
                     <option value="Not Elig">Not Eligible</option>
                     <option value="Live">Live</option>
-
                   </select>
                 </div>
 
@@ -2024,7 +2001,6 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                     <option value="">Select</option>
                     <option value="Elig">Eligible</option>
                     <option value="Not Elig">Not Eligible</option>
-
                   </select>
                 </div>
 
@@ -2106,9 +2082,10 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                   />
                 </div>
 
-
                 <div className="bs-form-modal-field">
-                  <label htmlFor="bs-labourBillAmount">Labour Amount (Without GST)</label>
+                  <label htmlFor="bs-labourBillAmount">
+                    Labour Amount (Without GST)
+                  </label>
                   <input
                     id="bs-labourBillAmount"
                     type="number"
@@ -2135,7 +2112,9 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                 </div>
 
                 <div className="bs-form-modal-field">
-                  <label htmlFor="bs-partsBillAmount">Parts Amount (Without GST)</label>
+                  <label htmlFor="bs-partsBillAmount">
+                    Parts Amount (Without GST)
+                  </label>
                   <input
                     id="bs-partsBillAmount"
                     type="number"
@@ -2160,7 +2139,6 @@ function FormModal({ isOpen, onClose, editRecord = null, onSuccess }) {
                     placeholder="0"
                   />
                 </div>
-
 
                 <div className="bs-form-modal-field bs-form-modal-textarea-field">
                   <label htmlFor="bs-voiceToCustomer">Voice to Customer</label>
