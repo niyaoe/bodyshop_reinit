@@ -17,7 +17,6 @@ function Dashboard() {
   const [overallLoading, setOverallLoading] = useState(false);
   const [overallError, setOverallError] = useState("");
 
-
   const [search, setSearch] = useState("");
   const [branch, setBranch] = useState("");
   // const [fromDate, setFromDate] = useState("");
@@ -72,12 +71,16 @@ function Dashboard() {
     setShowFormModal(true);
   };
 
+  const effectiveDateFilterType =
+    activeSection === "billed" && dateFilterType === "ro"
+      ? "bill"
+      : dateFilterType;
 
   const handleDeleteRecord = async (record, event) => {
     event.stopPropagation();
 
     const confirmed = window.confirm(
-      `Are you sure you want to delete record ${record.roNumber || record.regNo || record.slNo}?`
+      `Are you sure you want to delete record ${record.roNumber || record.regNo || record.slNo}?`,
     );
 
     if (!confirmed) return;
@@ -90,17 +93,13 @@ function Dashboard() {
       // Reload the current table and its filters.
       fetchDashboard(activeSection, page);
     } catch (error) {
-      setError(
-        error.response?.data?.message || "Failed to delete record"
-      );
+      setError(error.response?.data?.message || "Failed to delete record");
     }
   };
-
 
   const handleModalSuccess = () => {
     fetchDashboard(activeSection, page);
   };
-
 
   const fetchDashboard = async (
     section = activeSection,
@@ -120,7 +119,8 @@ function Dashboard() {
       // if (toDate) params.toDate = toDate;
       if (selectedMonth && selectedYear) {
         params.promiseMonth = `${selectedMonth}-${selectedYear.slice(-2)}`;
-        params.dateFilterType = dateFilterType;
+
+        params.dateFilterType = effectiveDateFilterType;
       }
       if (jobType) params.jobType = jobType;
       if (segment) params.segment = segment;
@@ -148,7 +148,6 @@ function Dashboard() {
     }
   };
 
-
   const fetchOverallStatus = async (segments = overallSegments) => {
     try {
       setOverallLoading(true);
@@ -167,17 +166,12 @@ function Dashboard() {
       setOverallStatus(response.data);
     } catch (error) {
       setOverallError(
-        error.response?.data?.message ||
-        "Failed to load Overall Status"
+        error.response?.data?.message || "Failed to load Overall Status",
       );
     } finally {
       setOverallLoading(false);
     }
   };
-
-
-
-
 
   // Overall Status: load when the section or segment selection changes.
   useEffect(() => {
@@ -190,12 +184,7 @@ function Dashboard() {
   useEffect(() => {
     if (activeSection === "overallStatus") return;
 
-    fetchDashboard(
-      activeSection,
-      page,
-      selectedSummaryTile,
-      selectedStatusId
-    );
+    fetchDashboard(activeSection, page, selectedSummaryTile, selectedStatusId);
   }, [
     activeSection,
     page,
@@ -245,7 +234,7 @@ function Dashboard() {
     setOverallSegments((previous) =>
       previous.includes(selectedSegment)
         ? previous.filter((item) => item !== selectedSegment)
-        : [...previous, selectedSegment]
+        : [...previous, selectedSegment],
     );
   };
 
@@ -253,7 +242,6 @@ function Dashboard() {
     setPage(1);
     fetchDashboard(activeSection, 1);
   };
-
 
   const handleClearFilters = async () => {
     setSearch("");
@@ -290,14 +278,12 @@ function Dashboard() {
       setDashboardData(data);
     } catch (error) {
       setError(
-        error.response?.data?.message ||
-        "Failed to load dashboard data"
+        error.response?.data?.message || "Failed to load dashboard data",
       );
     } finally {
       setLoading(false);
     }
   };
-
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -318,13 +304,15 @@ function Dashboard() {
 
   return (
     <div
-      className={`bst-theme-page bs-dashboard-page ${sidebarCollapsed ? "bs-sidebar-collapsed" : ""
-        }`}
+      className={`bst-theme-page bs-dashboard-page ${
+        sidebarCollapsed ? "bs-sidebar-collapsed" : ""
+      }`}
     >
       <div className="bs-dashboard-workspace">
         <aside
-          className={`bs-dashboard-sidebar ${sidebarCollapsed ? "is-collapsed" : ""
-            }`}
+          className={`bs-dashboard-sidebar ${
+            sidebarCollapsed ? "is-collapsed" : ""
+          }`}
           onMouseEnter={() => setSidebarCollapsed(false)}
           onMouseLeave={() => setSidebarCollapsed(true)}
         >
@@ -413,7 +401,8 @@ function Dashboard() {
                   <span className="bs-dashboard-chevron">
                     {filtersVisible ? "−" : "+"}
                   </span>
-                </button>)}
+                </button>
+              )}
               {activeSection !== "overallStatus" && (
                 <button
                   type="button"
@@ -449,8 +438,9 @@ function Dashboard() {
 
           {activeSection !== "overallStatus" && (
             <section
-              className={`bs-dashboard-collapsible ${filtersVisible ? "is-open" : ""
-                }`}
+              className={`bs-dashboard-collapsible ${
+                filtersVisible ? "is-open" : ""
+              }`}
               aria-hidden={!filtersVisible}
             >
               <div className="bs-dashboard-collapsible-inner">
@@ -509,10 +499,19 @@ function Dashboard() {
 
                       <button
                         type="button"
-                        className={dateFilterType === "ro" ? "active" : ""}
-                        onClick={() => setDateFilterType("ro")}
+                        className={
+                          effectiveDateFilterType ===
+                          (activeSection === "billed" ? "bill" : "ro")
+                            ? "active"
+                            : ""
+                        }
+                        onClick={() =>
+                          setDateFilterType(
+                            activeSection === "billed" ? "bill" : "ro",
+                          )
+                        }
                       >
-                        RO
+                        {activeSection === "billed" ? "Bill" : "RO"}
                       </button>
                     </div>
                   </div>
@@ -549,11 +548,13 @@ function Dashboard() {
                         onChange={(e) => setSelectedYear(e.target.value)}
                       >
                         <option value="">Select Year</option>
-                        {Array.from({ length: 11 }, (_, i) => 2026 + i).map((year) => (
-                          <option key={year} value={String(year)}>
-                            {year}
-                          </option>
-                        ))}
+                        {Array.from({ length: 11 }, (_, i) => 2026 + i).map(
+                          (year) => (
+                            <option key={year} value={String(year)}>
+                              {year}
+                            </option>
+                          ),
+                        )}
                       </select>
                     </div>
                   </div>
@@ -575,7 +576,6 @@ function Dashboard() {
               </div>
             </section>
           )}
-
 
           {activeSection !== "overallStatus" &&
             !loading &&
@@ -600,8 +600,8 @@ function Dashboard() {
                           </span>
                           <strong className="bs-dashboard-card-value">
                             {(
-                              dashboardData.openStatusSummary?.totalOpenRecords ??
-                              0
+                              dashboardData.openStatusSummary
+                                ?.totalOpenRecords ?? 0
                             ).toLocaleString("en-IN")}
                           </strong>
                         </button>
@@ -609,7 +609,9 @@ function Dashboard() {
                         <button
                           type="button"
                           className="bs-dashboard-card bs-dashboard-summary-tile"
-                          onClick={() => handleSummaryTileClick("openLabourEstimate")}
+                          onClick={() =>
+                            handleSummaryTileClick("openLabourEstimate")
+                          }
                           title="View records with labour estimates"
                         >
                           <span className="bs-dashboard-card-label">
@@ -627,7 +629,9 @@ function Dashboard() {
                         <button
                           type="button"
                           className="bs-dashboard-card bs-dashboard-summary-tile"
-                          onClick={() => handleSummaryTileClick("openPartsEstimate")}
+                          onClick={() =>
+                            handleSummaryTileClick("openPartsEstimate")
+                          }
                           title="View records with parts estimates"
                         >
                           <span className="bs-dashboard-card-label">
@@ -648,7 +652,9 @@ function Dashboard() {
                               type="button"
                               className="bs-dashboard-card bs-dashboard-summary-tile"
                               key={status.id}
-                              onClick={() => handleSummaryTileClick("status", status.id)}
+                              onClick={() =>
+                                handleSummaryTileClick("status", status.id)
+                              }
                               title={`View ${status.name} records`}
                             >
                               <span className="bs-dashboard-card-label">
@@ -674,7 +680,8 @@ function Dashboard() {
                           </span>
                           <strong className="bs-dashboard-card-value">
                             {(
-                              dashboardData.billedStatusSummary?.totalBilledRecords ?? 0
+                              dashboardData.billedStatusSummary
+                                ?.totalBilledRecords ?? 0
                             ).toLocaleString("en-IN")}
                           </strong>
                         </button>
@@ -682,7 +689,9 @@ function Dashboard() {
                         <button
                           type="button"
                           className="bs-dashboard-card bs-dashboard-summary-tile"
-                          onClick={() => handleSummaryTileClick("billedLabourBill")}
+                          onClick={() =>
+                            handleSummaryTileClick("billedLabourBill")
+                          }
                           title="View records with labour bill amounts"
                         >
                           <span className="bs-dashboard-card-label">
@@ -691,7 +700,8 @@ function Dashboard() {
                           <strong className="bs-dashboard-card-value">
                             ₹
                             {(
-                              dashboardData.billedStatusSummary?.totalLabourBill ?? 0
+                              dashboardData.billedStatusSummary
+                                ?.totalLabourBill ?? 0
                             ).toLocaleString("en-IN")}
                           </strong>
                         </button>
@@ -699,7 +709,9 @@ function Dashboard() {
                         <button
                           type="button"
                           className="bs-dashboard-card bs-dashboard-summary-tile"
-                          onClick={() => handleSummaryTileClick("billedPartsBill")}
+                          onClick={() =>
+                            handleSummaryTileClick("billedPartsBill")
+                          }
                           title="View records with parts bill amounts"
                         >
                           <span className="bs-dashboard-card-label">
@@ -708,7 +720,8 @@ function Dashboard() {
                           <strong className="bs-dashboard-card-value">
                             ₹
                             {(
-                              dashboardData.billedStatusSummary?.totalPartsBill ?? 0
+                              dashboardData.billedStatusSummary
+                                ?.totalPartsBill ?? 0
                             ).toLocaleString("en-IN")}
                           </strong>
                         </button>
@@ -726,7 +739,8 @@ function Dashboard() {
                           </span>
                           <strong className="bs-dashboard-card-value">
                             {(
-                              dashboardData.legalLossSummary?.totalLegalLossRecords ?? 0
+                              dashboardData.legalLossSummary
+                                ?.totalLegalLossRecords ?? 0
                             ).toLocaleString("en-IN")}
                           </strong>
                         </button>
@@ -745,7 +759,8 @@ function Dashboard() {
                           <strong className="bs-dashboard-card-value">
                             ₹
                             {(
-                              dashboardData.legalLossSummary?.totalLabourEstimate ?? 0
+                              dashboardData.legalLossSummary
+                                ?.totalLabourEstimate ?? 0
                             ).toLocaleString("en-IN")}
                           </strong>
                         </button>
@@ -764,7 +779,8 @@ function Dashboard() {
                           <strong className="bs-dashboard-card-value">
                             ₹
                             {(
-                              dashboardData.legalLossSummary?.totalPartsEstimate ?? 0
+                              dashboardData.legalLossSummary
+                                ?.totalPartsEstimate ?? 0
                             ).toLocaleString("en-IN")}
                           </strong>
                         </button>
@@ -780,9 +796,6 @@ function Dashboard() {
           )} */}
 
           {error && <div className="bs-dashboard-error">{error}</div>}
-
-
-
 
           {activeSection === "overallStatus" && (
             <section className="bs-dashboard-records bs-overall-section">
@@ -810,20 +823,18 @@ function Dashboard() {
               )}
 
               {/* Empty state */}
-              {!overallLoading &&
-                !overallError &&
-                !overallStatusData && (
-                  <div className="bs-overall-empty">
-                    No Overall Status data available.
-                    <button
-                      type="button"
-                      onClick={() => fetchOverallStatus(overallSegments)}
-                      className="bs-overall-retry-button"
-                    >
-                      Reload
-                    </button>
-                  </div>
-                )}
+              {!overallLoading && !overallError && !overallStatusData && (
+                <div className="bs-overall-empty">
+                  No Overall Status data available.
+                  <button
+                    type="button"
+                    onClick={() => fetchOverallStatus(overallSegments)}
+                    className="bs-overall-retry-button"
+                  >
+                    Reload
+                  </button>
+                </div>
+              )}
 
               {/* Overall Status data */}
               {!overallLoading &&
@@ -835,14 +846,14 @@ function Dashboard() {
                   const statuses = overallStatusData.statuses || [];
 
                   const rowByBranchId = new Map(
-                    visibleRows.map((row) => [String(row.branchId), row])
+                    visibleRows.map((row) => [String(row.branchId), row]),
                   );
 
                   const branchEstimateMap = new Map(
                     (overallStatusData.branchEstimates || []).map((item) => [
                       String(item.branchId),
                       item,
-                    ])
+                    ]),
                   );
 
                   const money = (value) =>
@@ -878,29 +889,37 @@ function Dashboard() {
                   ];
 
                   const getEstimate = (branchId, month, field) =>
-                    branchEstimateMap.get(String(branchId))?.[month]?.[field] || 0;
+                    branchEstimateMap.get(String(branchId))?.[month]?.[field] ||
+                    0;
 
                   const getEstimateTotal = (month, field) =>
                     visibleBranches.reduce(
-                      (sum, item) =>
-                        sum + getEstimate(item._id, month, field),
-                      0
+                      (sum, item) => sum + getEstimate(item._id, month, field),
+                      0,
                     );
 
                   return (
                     <>
-
                       {/* Segment filter - single row */}
                       <div className="bstd-overall-segment-filter">
-                        <span className="bstd-segment-filter-label">Segment:</span>
+                        <span className="bstd-segment-filter-label">
+                          Segment:
+                        </span>
 
                         <div className="bstd-overall-segment-options">
                           {availableOverallSegments.map((segmentOption) => (
-                            <label key={segmentOption} className="bstd-segment-checkbox">
+                            <label
+                              key={segmentOption}
+                              className="bstd-segment-checkbox"
+                            >
                               <input
                                 type="checkbox"
-                                checked={overallSegments.includes(segmentOption)}
-                                onChange={() => handleOverallSegmentChange(segmentOption)}
+                                checked={overallSegments.includes(
+                                  segmentOption,
+                                )}
+                                onChange={() =>
+                                  handleOverallSegmentChange(segmentOption)
+                                }
                               />
                               <span>{segmentOption}</span>
                             </label>
@@ -915,7 +934,6 @@ function Dashboard() {
                           </button>
                         </div>
                       </div>
-
 
                       {/* Table */}
                       <div className="bs-dashboard-table-wrapper bs-overall-table-wrapper">
@@ -946,7 +964,7 @@ function Dashboard() {
                               const total = visibleRows.reduce(
                                 (sum, row) =>
                                   sum + (row.statusCounts?.[statusKey] || 0),
-                                0
+                                0,
                               );
 
                               return (
@@ -954,7 +972,9 @@ function Dashboard() {
                                   <td>{status.name}</td>
 
                                   {visibleBranches.map((item) => {
-                                    const row = rowByBranchId.get(String(item._id));
+                                    const row = rowByBranchId.get(
+                                      String(item._id),
+                                    );
 
                                     return (
                                       <td
@@ -1002,7 +1022,7 @@ function Dashboard() {
                                   {visibleRows
                                     .reduce(
                                       (sum, row) => sum + (row.total || 0),
-                                      0
+                                      0,
                                     )
                                     .toLocaleString("en-IN")}
                                 </strong>
@@ -1031,8 +1051,8 @@ function Dashboard() {
                                       getEstimate(
                                         item._id,
                                         estimate.month,
-                                        estimate.field
-                                      )
+                                        estimate.field,
+                                      ),
                                     )}
                                   </td>
                                 ))}
@@ -1042,8 +1062,8 @@ function Dashboard() {
                                     {money(
                                       getEstimateTotal(
                                         estimate.month,
-                                        estimate.field
-                                      )
+                                        estimate.field,
+                                      ),
                                     )}
                                   </strong>
                                 </td>
@@ -1056,18 +1076,21 @@ function Dashboard() {
                               </td>
 
                               {visibleBranches.map((item) => (
-                                <td key={item._id} className="bs-overall-number">
+                                <td
+                                  key={item._id}
+                                  className="bs-overall-number"
+                                >
                                   {money(
                                     getEstimate(
                                       item._id,
                                       "currentMonth",
-                                      "labourEstimate"
+                                      "labourEstimate",
                                     ) +
-                                    getEstimate(
-                                      item._id,
-                                      "nextMonth",
-                                      "labourEstimate"
-                                    )
+                                      getEstimate(
+                                        item._id,
+                                        "nextMonth",
+                                        "labourEstimate",
+                                      ),
                                   )}
                                 </td>
                               ))}
@@ -1075,8 +1098,10 @@ function Dashboard() {
                               <td className="bs-overall-number">
                                 <strong>
                                   {money(
-                                    (overallStatusData.estimateTotals?.currentMonth?.labourEstimate || 0) +
-                                    (overallStatusData.estimateTotals?.nextMonth?.labourEstimate || 0)
+                                    (overallStatusData.estimateTotals
+                                      ?.currentMonth?.labourEstimate || 0) +
+                                      (overallStatusData.estimateTotals
+                                        ?.nextMonth?.labourEstimate || 0),
                                   )}
                                 </strong>
                               </td>
@@ -1088,18 +1113,21 @@ function Dashboard() {
                               </td>
 
                               {visibleBranches.map((item) => (
-                                <td key={item._id} className="bs-overall-number">
+                                <td
+                                  key={item._id}
+                                  className="bs-overall-number"
+                                >
                                   {money(
                                     getEstimate(
                                       item._id,
                                       "currentMonth",
-                                      "partsEstimate"
+                                      "partsEstimate",
                                     ) +
-                                    getEstimate(
-                                      item._id,
-                                      "nextMonth",
-                                      "partsEstimate"
-                                    )
+                                      getEstimate(
+                                        item._id,
+                                        "nextMonth",
+                                        "partsEstimate",
+                                      ),
                                   )}
                                 </td>
                               ))}
@@ -1107,13 +1135,14 @@ function Dashboard() {
                               <td className="bs-overall-number">
                                 <strong>
                                   {money(
-                                    (overallStatusData.estimateTotals?.currentMonth?.partsEstimate || 0) +
-                                    (overallStatusData.estimateTotals?.nextMonth?.partsEstimate || 0)
+                                    (overallStatusData.estimateTotals
+                                      ?.currentMonth?.partsEstimate || 0) +
+                                      (overallStatusData.estimateTotals
+                                        ?.nextMonth?.partsEstimate || 0),
                                   )}
                                 </strong>
                               </td>
                             </tr>
-
                           </tbody>
                         </table>
                       </div>
@@ -1123,177 +1152,173 @@ function Dashboard() {
             </section>
           )}
 
+          {activeSection !== "overallStatus" && !error && dashboardData && (
+            <section className="bs-dashboard-records">
+              <div className="bs-dashboard-table-wrapper">
+                {loading && (
+                  <div className="bs-table-loading-overlay">
+                    <img
+                      src="/loading.png"
+                      alt="Loading..."
+                      className="bs-loading-spinner"
+                    />
+                    {/* <p>Loading records...</p> */}
+                  </div>
+                )}
+                <table className="bs-dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Sl No</th>
+                      <th>Branch</th>
+                      <th className="bs-sticky-reg">Registration</th>
+                      <th>Yard Entry Date</th>
+                      <th>RO Date</th>
+                      <th>RO Aging</th>
+                      <th>RO</th>
+                      <th>Model</th>
 
+                      <th>
+                        <div className="bs-table-header-filter">
+                          <span>Segment</span>
+                          <select
+                            aria-label="Filter by segment"
+                            value={segment}
+                            onChange={(e) => {
+                              setSegment(e.target.value);
+                              setPage(1);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="">All</option>
+                            <option value="PV">PV</option>
+                            <option value="BEV">BEV</option>
+                            <option value="CV">CV</option>
+                            <option value="LMM">LMM</option>
+                            <option value="3W">3W</option>
+                          </select>
+                        </div>
+                      </th>
+                      <th>
+                        <div className="bs-table-header-filter">
+                          <span>Job</span>
+                          <select
+                            aria-label="Filter by job type"
+                            value={jobType}
+                            onChange={(e) => {
+                              setJobType(e.target.value);
+                              setPage(1);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="">All</option>
+                            <option value="M1">M1</option>
+                            <option value="M2">M2</option>
+                            <option value="M3">M3</option>
+                            <option value="M4">M4</option>
+                          </select>
+                        </div>
+                      </th>
 
+                      <th>Status</th>
+                      <th>Customer</th>
+                      <th>Contact No</th>
+                      <th>
+                        <div className="bs-table-header-filter">
+                          <span>Insu Status</span>
+                          <select
+                            aria-label="Filter by insurance status"
+                            value={insuranceStatus}
+                            onChange={(e) => {
+                              setInsuranceStatus(e.target.value);
+                              setPage(1);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="">All</option>
+                            <option value="In-House">In-House</option>
+                            <option value="Out-Side">Out-Side</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Warranty">Warranty</option>
+                          </select>
+                        </div>
+                      </th>
+                      <th>Insu Name</th>
+                      <th>
+                        <div className="bs-table-header-filter">
+                          <span>SA</span>
 
-          {activeSection !== "overallStatus" &&
-            !error &&
-            dashboardData && (
-              <section className="bs-dashboard-records">
-                <div className="bs-dashboard-table-wrapper">
-                  {loading && (
-                    <div className="bs-table-loading-overlay">
-                      <img
-                        src="/loading.png"
-                        alt="Loading..."
-                        className="bs-loading-spinner"
-                      />
-                      {/* <p>Loading records...</p> */}
-                    </div>
-                  )}
-                  <table className="bs-dashboard-table">
-                    <thead>
-                      <tr>
-                        <th>Sl No</th>
-                        <th>Branch</th>
-                        <th className="bs-sticky-reg">Registration</th>
-                        <th>Yard Entry Date</th>
-                        <th>RO Date</th>
-                        <th>RO Aging</th>
-                        <th>RO</th>
-                        <th>Model</th>
+                          <select
+                            aria-label="Filter by service adviser"
+                            value={serviceAdvisor}
+                            onChange={(e) => {
+                              setServiceAdvisor(e.target.value);
+                              setPage(1);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="">All</option>
 
-                        <th>
-                          <div className="bs-table-header-filter">
-                            <span>Segment</span>
-                            <select
-                              aria-label="Filter by segment"
-                              value={segment}
-                              onChange={(e) => {
-                                setSegment(e.target.value);
-                                setPage(1);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <option value="">All</option>
-                              <option value="PV">PV</option>
-                              <option value="BEV">BEV</option>
-                              <option value="CV">CV</option>
-                              <option value="LMM">LMM</option>
-                              <option value="3W">3W</option>
-                            </select>
-                          </div>
-                        </th>
-                        <th>
-                          <div className="bs-table-header-filter">
-                            <span>Job</span>
-                            <select
-                              aria-label="Filter by job type"
-                              value={jobType}
-                              onChange={(e) => {
-                                setJobType(e.target.value);
-                                setPage(1);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <option value="">All</option>
-                              <option value="M1">M1</option>
-                              <option value="M2">M2</option>
-                              <option value="M3">M3</option>
-                              <option value="M4">M4</option>
-                            </select>
-                          </div>
-                        </th>
-
-
-                        <th>Status</th>
-                        <th>Customer</th>
-                        <th>Contact No</th>
-                        <th>
-                          <div className="bs-table-header-filter">
-                            <span>Insu Status</span>
-                            <select
-                              aria-label="Filter by insurance status"
-                              value={insuranceStatus}
-                              onChange={(e) => {
-                                setInsuranceStatus(e.target.value);
-                                setPage(1);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <option value="">All</option>
-                              <option value="In-House">In-House</option>
-                              <option value="Out-Side">Out-Side</option>
-                              <option value="Cash">Cash</option>
-                              <option value="Warranty">Warranty</option>
-                            </select>
-                          </div>
-                        </th>
-                        <th>Insu Name</th>
-                        <th>
-                          <div className="bs-table-header-filter">
-                            <span>SA</span>
-
-                            <select
-                              aria-label="Filter by service adviser"
-                              value={serviceAdvisor}
-                              onChange={(e) => {
-                                setServiceAdvisor(e.target.value);
-                                setPage(1);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <option value="">All</option>
-
-                              {(dashboardData?.serviceAdvisors || []).map((name) => (
+                            {(dashboardData?.serviceAdvisors || []).map(
+                              (name) => (
                                 <option key={name} value={name}>
                                   {name}
                                 </option>
-                              ))}
-                            </select>
-                          </div>
-                        </th>
-                        <th>PMS Date</th>
-                        <th>RSA</th>
-                        <th>Shield</th>
-                        <th>WhatsApp</th>
-                        <th>Promise Date</th>
-                        <th>Labour Est</th>
-                        <th>Parts Est</th>
-                        <th>Bill Date</th>
-                        <th>Labour Amt</th>
-                        <th>Parts Amt</th>
-                        <th>Actions</th>
+                              ),
+                            )}
+                          </select>
+                        </div>
+                      </th>
+                      <th>PMS Date</th>
+                      <th>RSA</th>
+                      <th>Shield</th>
+                      <th>WhatsApp</th>
+                      <th>Promise Date</th>
+                      <th>Labour Est</th>
+                      <th>Parts Est</th>
+                      <th>Bill Date</th>
+                      <th>Labour Amt</th>
+                      <th>Parts Amt</th>
+                      <th>Actions</th>
 
-                        {/* <th>Action</th> */}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dashboardData.records?.length > 0 ? (
-                        dashboardData.records.map((record) => (
-                          <tr
-                            key={record._id}
-                            onClick={() => handleEditRecord(record)}
-                            className={
-                              record.isDeliveryOverdue
-                                ? "bs-delivery-overdue-row"
-                                : ""
-                            }
-                            title={
-                              record.isDeliveryOverdue
-                                ? `${record.deliveryDaysOverdue} days past promised delivery date`
-                                : undefined
-                            }
-                          >
-                            <td>{record.slNo}</td>
-                            <td>{record.branch?.name || "-"}</td>
-                            <td className="bs-sticky-reg">{record.regNo}</td>
-                            <td>
-                              {record.yardEntryDate
-                                ? new Date(
+                      {/* <th>Action</th> */}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dashboardData.records?.length > 0 ? (
+                      dashboardData.records.map((record) => (
+                        <tr
+                          key={record._id}
+                          onClick={() => handleEditRecord(record)}
+                          className={
+                            record.isDeliveryOverdue
+                              ? "bs-delivery-overdue-row"
+                              : ""
+                          }
+                          title={
+                            record.isDeliveryOverdue
+                              ? `${record.deliveryDaysOverdue} days past promised delivery date`
+                              : undefined
+                          }
+                        >
+                          <td>{record.slNo}</td>
+                          <td>{record.branch?.name || "-"}</td>
+                          <td className="bs-sticky-reg">{record.regNo}</td>
+                          <td>
+                            {record.yardEntryDate
+                              ? new Date(
                                   record.yardEntryDate,
                                 ).toLocaleDateString()
-                                : "-"}
-                            </td>
-                            <td>
-                              {record.roDate
-                                ? new Date(record.roDate).toLocaleDateString()
-                                : "-"}
-                            </td>
+                              : "-"}
+                          </td>
+                          <td>
+                            {record.roDate
+                              ? new Date(record.roDate).toLocaleDateString()
+                              : "-"}
+                          </td>
 
-                            <td>
-                              {record.roDate
-                                ? (() => {
+                          <td>
+                            {record.roDate
+                              ? (() => {
                                   const roDate = new Date(record.roDate);
                                   const today = new Date();
 
@@ -1301,90 +1326,92 @@ function Dashboard() {
                                   today.setHours(0, 0, 0, 0);
 
                                   return `${Math.floor(
-                                    (today - roDate) / (1000 * 60 * 60 * 24)
+                                    (today - roDate) / (1000 * 60 * 60 * 24),
                                   )} days`;
                                 })()
-                                : "-"}
-                            </td>
-                            <td className="bs-dashboard-ro-cell">
-                              {record.roNumber}
-                            </td>
-                            <td>{record.model}</td>
-                            <td>{record.subSegmentName || "—"}</td>
-                            <td>{record.jobType || "-"}</td>
-                            <td>
-                              <span className="bs-dashboard-status-pill">
-                                {record.presentStatus?.name || "-"}
-                              </span>
-                            </td>
-                            <td>{record.customerName}</td>
-                            <td>{record.contactNo || "-"}</td>
-                            <td>{record.insuranceStatus || "-"}</td>
-                            <td>{record.insuranceName || "-"}</td>
-                            <td>{record.serviceAdvisor || "-"}</td>
-                            {/* PMS Date */}
-                            <td>
-                              {record.nextPmsDate
-                                ? new Date(
+                              : "-"}
+                          </td>
+                          <td className="bs-dashboard-ro-cell">
+                            {record.roNumber}
+                          </td>
+                          <td>{record.model}</td>
+                          <td>{record.subSegmentName || "—"}</td>
+                          <td>{record.jobType || "-"}</td>
+                          <td>
+                            <span className="bs-dashboard-status-pill">
+                              {record.presentStatus?.name || "-"}
+                            </span>
+                          </td>
+                          <td>{record.customerName}</td>
+                          <td>{record.contactNo || "-"}</td>
+                          <td>{record.insuranceStatus || "-"}</td>
+                          <td>{record.insuranceName || "-"}</td>
+                          <td>{record.serviceAdvisor || "-"}</td>
+                          {/* PMS Date */}
+                          <td>
+                            {record.nextPmsDate
+                              ? new Date(
                                   record.nextPmsDate,
                                 ).toLocaleDateString()
-                                : "-"}
-                            </td>
+                              : "-"}
+                          </td>
 
-                            {/* RSA */}
-                            <td>{record.rsaEligibility || "-"}</td>
+                          {/* RSA */}
+                          <td>{record.rsaEligibility || "-"}</td>
 
-                            {/* Shield */}
-                            <td>{record.shieldEligibility || "-"}</td>
+                          {/* Shield */}
+                          <td>{record.shieldEligibility || "-"}</td>
 
-                            {/* WhatsApp */}
-                            <td>
-                              {record.whatsappGroupCreationDate
-                                ? new Date(
+                          {/* WhatsApp */}
+                          <td>
+                            {record.whatsappGroupCreationDate
+                              ? new Date(
                                   record.whatsappGroupCreationDate,
                                 ).toLocaleDateString()
-                                : "-"}
-                            </td>
+                              : "-"}
+                          </td>
 
-                            {/* Promise Date */}
-                            <td>
-                              {record.promisedDeliveryDate
-                                ? new Date(
+                          {/* Promise Date */}
+                          <td>
+                            {record.promisedDeliveryDate
+                              ? new Date(
                                   record.promisedDeliveryDate,
                                 ).toLocaleDateString()
-                                : "-"}
-                            </td>
+                              : "-"}
+                          </td>
 
-                            {/* Labour Estimate */}
-                            <td>{record.labourEstimate ?? "-"}</td>
+                          {/* Labour Estimate */}
+                          <td>{record.labourEstimate ?? "-"}</td>
 
-                            {/* Parts Estimate */}
-                            <td>{record.partsEstimate ?? "-"}</td>
+                          {/* Parts Estimate */}
+                          <td>{record.partsEstimate ?? "-"}</td>
 
-                            {/* Bill Date */}
-                            <td>
-                              {record.billDate
-                                ? new Date(record.billDate).toLocaleDateString()
-                                : "-"}
-                            </td>
+                          {/* Bill Date */}
+                          <td>
+                            {record.billDate
+                              ? new Date(record.billDate).toLocaleDateString()
+                              : "-"}
+                          </td>
 
-                            {/* Labour Amount */}
-                            <td>{record.labourBillAmount ?? "-"}</td>
+                          {/* Labour Amount */}
+                          <td>{record.labourBillAmount ?? "-"}</td>
 
-                            {/* Parts Amount */}
-                            <td>{record.partsBillAmount ?? "-"}</td>
-                            <td className="bs-record-actions-cell">
-                              <button
-                                type="button"
-                                className="bs-record-delete-button"
-                                onClick={(event) => handleDeleteRecord(record, event)}
-                                title="Delete record"
-                              >
-                                Delete
-                              </button>
-                            </td>
+                          {/* Parts Amount */}
+                          <td>{record.partsBillAmount ?? "-"}</td>
+                          <td className="bs-record-actions-cell">
+                            <button
+                              type="button"
+                              className="bs-record-delete-button"
+                              onClick={(event) =>
+                                handleDeleteRecord(record, event)
+                              }
+                              title="Delete record"
+                            >
+                              Delete
+                            </button>
+                          </td>
 
-                            {/* <td>
+                          {/* <td>
                             <button
                               className="bs-dashboard-edit-button"
                               onClick={() => handleEditRecord(record)}
@@ -1392,43 +1419,43 @@ function Dashboard() {
                               Edit
                             </button>
                           </td> */}
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="25" className="bs-dashboard-empty">
-                            No records found
-                          </td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="25" className="bs-dashboard-empty">
+                          No records found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-                <div className="bs-dashboard-pagination">
-                  <span className="bs-dashboard-pagination-info">
-                    Page <strong>{currentPage}</strong> of{" "}
-                    <strong>{totalPages}</strong>
-                  </span>
-                  <div className="bs-dashboard-pagination-controls">
-                    <button
-                      className="bs-dashboard-page-button"
-                      disabled={currentPage <= 1}
-                      onClick={() => setPage(currentPage - 1)}
-                    >
-                      ← Previous
-                    </button>
-                    <button
-                      className="bs-dashboard-page-button"
-                      disabled={currentPage >= totalPages}
-                      onClick={() => setPage(currentPage + 1)}
-                    >
-                      Next →
-                    </button>
-                  </div>
+              <div className="bs-dashboard-pagination">
+                <span className="bs-dashboard-pagination-info">
+                  Page <strong>{currentPage}</strong> of{" "}
+                  <strong>{totalPages}</strong>
+                </span>
+                <div className="bs-dashboard-pagination-controls">
+                  <button
+                    className="bs-dashboard-page-button"
+                    disabled={currentPage <= 1}
+                    onClick={() => setPage(currentPage - 1)}
+                  >
+                    ← Previous
+                  </button>
+                  <button
+                    className="bs-dashboard-page-button"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setPage(currentPage + 1)}
+                  >
+                    Next →
+                  </button>
                 </div>
-              </section>
-            )}
+              </div>
+            </section>
+          )}
         </main>
       </div>
       {user?.role === "admin" && (
