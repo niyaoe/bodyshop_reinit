@@ -33,6 +33,8 @@ const createFormRecord = async (req, res) => {
       customerName,
       contactNo,
       serviceAdvisor,
+      surveyorName,
+      surveyDate,
       whatsappGroupCreationDate,
       nextPmsDate,
       shieldEligibility,
@@ -193,7 +195,10 @@ const createFormRecord = async (req, res) => {
       model,
       customerName,
       contactNo,
+
       serviceAdvisor,
+      surveyorName,
+      surveyDate: surveyDate || undefined,
 
       whatsappGroupCreationDate,
       nextPmsDate,
@@ -429,6 +434,8 @@ const updateFormRecord = async (req, res) => {
       customerName,
       contactNo,
       serviceAdvisor,
+      surveyorName,
+      surveyDate,
       whatsappGroupCreationDate,
       nextPmsDate,
       shieldEligibility,
@@ -549,6 +556,14 @@ const updateFormRecord = async (req, res) => {
 
     if (serviceAdvisor !== undefined) {
       record.serviceAdvisor = serviceAdvisor;
+    }
+
+    if (surveyorName !== undefined) {
+      record.surveyorName = surveyorName;
+    }
+
+    if (surveyDate !== undefined) {
+      record.surveyDate = surveyDate || undefined;
     }
 
     if (whatsappGroupCreationDate !== undefined) {

@@ -185,6 +185,15 @@ const formRecordSchema = new mongoose.Schema(
       trim: true,
     },
 
+    surveyorName: {
+      type: String,
+      trim: true,
+    },
+
+    surveyDate: {
+      type: Date,
+    },
+
     whatsappGroupCreationDate: {
       type: Date,
     },
