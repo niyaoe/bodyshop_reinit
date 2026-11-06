@@ -135,9 +135,18 @@ const getDashboard = async (req, res) => {
         });
       }
 
-      if (!["promise", "ro"].includes(dateFilterType)) {
+      const allowedDateFilterTypes = ["promise", "ro", "bill"];
+
+      if (!allowedDateFilterTypes.includes(dateFilterType)) {
         return res.status(400).json({
           message: "Invalid date filter type.",
+        });
+      }
+
+      // Bill Date filter is only allowed in the Billed section
+      if (dateFilterType === "bill" && section !== "billed") {
+        return res.status(400).json({
+          message: "Bill Date filter is only available in the Billed section.",
         });
       }
 
@@ -151,9 +160,11 @@ const getDashboard = async (req, res) => {
       }
 
       const dateField =
-        dateFilterType === "ro"
-          ? "roDate"
-          : "promisedDeliveryDate";
+        dateFilterType === "bill"
+          ? "billDate"
+          : dateFilterType === "ro"
+            ? "roDate"
+            : "promisedDeliveryDate";
 
       filter[dateField] = {
         $gte: new Date(Date.UTC(year, month - 1, 1)),
